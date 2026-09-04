@@ -1,0 +1,1536 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dispersion y Forma</title>
+<meta name="description" content="Laboratorio interactivo de 20 minutos sobre medidas de variabilidad: rango, rango intercuartílico, varianza, desviación estándar, coeficiente de variación, propiedades de la varianza, asimetría, curtosis y diagrama de cajas, con puntaje y constancia de participación.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ground:#EDF2F1; --surface:#FFFFFF; --surface-2:#F5F9F8; --surface-3:#E4EDEB;
+  --ink:#0F1E1D; --ink-2:#42605D; --ink-3:#728E8B;
+  --line:#D2DEDC; --line-2:#B4C6C3;
+  --accent:#0E6E77; --accent-2:#0B565D; --accent-soft:#D6EAEB; --on-accent:#FFFFFF;
+  --amber:#9C6612; --amber-soft:#F9EDD5; --amber-line:#E0C48A;
+  --ok:#1B7A4C; --ok-soft:#DCF0E4;
+  --bad:#A93A2C; --bad-soft:#F8E3DF;
+  --shadow:0 1px 2px rgba(15,30,29,.05), 0 8px 24px -12px rgba(15,30,29,.18);
+  --radius:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#091312; --surface:#101F1E; --surface-2:#152726; --surface-3:#1C3231;
+    --ink:#E6EEEC; --ink-2:#A9C0BD; --ink-3:#7C9491;
+    --line:#223836; --line-2:#33504D;
+    --accent:#43B5BA; --accent-2:#6FD0D3; --accent-soft:#10312F; --on-accent:#04191A;
+    --amber:#E0AC4C; --amber-soft:#31260F; --amber-line:#5C4A1E;
+    --ok:#4FBE84; --ok-soft:#0F2C1F;
+    --bad:#E5806E; --bad-soft:#331813;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#091312; --surface:#101F1E; --surface-2:#152726; --surface-3:#1C3231;
+  --ink:#E6EEEC; --ink-2:#A9C0BD; --ink-3:#7C9491;
+  --line:#223836; --line-2:#33504D;
+  --accent:#43B5BA; --accent-2:#6FD0D3; --accent-soft:#10312F; --on-accent:#04191A;
+  --amber:#E0AC4C; --amber-soft:#31260F; --amber-line:#5C4A1E;
+  --ok:#4FBE84; --ok-soft:#0F2C1F;
+  --bad:#E5806E; --bad-soft:#331813;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"Source Serif 4","Iowan Old Style",Georgia,serif;
+  font-size:17px; line-height:1.6;
+}
+h1,h2,h3,h4{font-family:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;font-weight:700;text-wrap:balance;margin:0;line-height:1.15;letter-spacing:-.015em}
+.mono,input,.num,table.freq,.chip,.tag{font-family:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums}
+p{margin:0}
+button{font:inherit;cursor:pointer}
+a{color:var(--accent)}
+
+/* ---------- shell ---------- */
+.wrap{max-width:880px;margin:0 auto;padding:0 20px 96px}
+.bar{
+  position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--surface) 92%,transparent);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+}
+.bar-in{max-width:880px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:700;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin-right:auto;display:flex;align-items:center;gap:9px}
+.brand .dot{width:9px;height:9px;border-radius:2px;background:var(--accent);display:inline-block}
+.timer{
+  font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:1.15rem;font-weight:600;
+  padding:4px 11px;border-radius:8px;background:var(--surface-3);color:var(--ink);border:1px solid var(--line-2);
+  letter-spacing:.02em;
+}
+.timer.warn{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-line)}
+.timer.crit{background:var(--bad-soft);color:var(--bad);border-color:var(--bad);animation:pulse 1s steps(2,end) infinite}
+@keyframes pulse{50%{opacity:.45}}
+@media (prefers-reduced-motion:reduce){.timer.crit{animation:none}}
+.scorepill{font-family:"IBM Plex Mono",monospace;font-size:.85rem;padding:5px 10px;border-radius:8px;background:var(--accent-soft);color:var(--accent);border:1px solid transparent;font-weight:600}
+.iconbtn{background:transparent;border:1px solid var(--line-2);color:var(--ink-2);border-radius:8px;width:34px;height:34px;display:grid;place-items:center;font-size:.95rem}
+.iconbtn:hover{border-color:var(--accent);color:var(--accent)}
+.iconbtn:focus-visible,button:focus-visible,input:focus-visible,.opt:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+
+.track{height:3px;background:var(--line);position:relative}
+.track > i{display:block;height:100%;background:var(--accent);width:0;transition:width .45s cubic-bezier(.2,.7,.3,1)}
+
+/* ---------- generic blocks ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+.lead{color:var(--ink-2);font-size:1.02rem}
+.btn{
+  border:1px solid transparent;background:var(--accent);color:var(--on-accent);
+  font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:600;font-size:.95rem;
+  padding:11px 20px;border-radius:8px;transition:background .15s,transform .08s;
+}
+.btn:hover{background:var(--accent-2)}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--accent);border-color:var(--line-2)}
+.btn.ghost:hover{border-color:var(--accent);background:var(--accent-soft)}
+
+/* ---------- intro ---------- */
+.hero{padding:52px 0 28px}
+.hero h1{font-size:clamp(2rem,5.2vw,3.1rem);margin:14px 0 12px}
+.hero h1 em{font-style:normal;color:var(--accent);font-variant:normal}
+.rulecard{margin-top:26px;padding:22px;display:grid;gap:14px}
+.rulegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.rule{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:13px 14px}
+.rule b{display:block;font-family:"Bricolage Grotesque",sans-serif;font-size:.9rem;margin-bottom:3px}
+.rule span{font-size:.88rem;color:var(--ink-2)}
+.idform{display:grid;gap:12px;grid-template-columns:1fr 1fr;margin-top:8px}
+.field{display:grid;gap:5px}
+.field label{font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+input[type=text],input[type=number]{
+  background:var(--surface-2);border:1px solid var(--line-2);border-radius:7px;color:var(--ink);
+  padding:10px 12px;font-size:1rem;width:100%;
+}
+input::placeholder{color:var(--ink-3);opacity:.7}
+input.ok{border-color:var(--ok);background:var(--ok-soft)}
+input.bad{border-color:var(--bad);background:var(--bad-soft)}
+.full{grid-column:1/-1}
+
+/* ---------- exercise ---------- */
+.ctx{margin:24px 0;padding:22px;border-left:3px solid var(--accent)}
+.ctx h2{font-size:1.35rem;margin-bottom:8px}
+.ctx .src{margin-top:12px;font-size:.8rem;color:var(--ink-3);font-family:"IBM Plex Mono",monospace}
+.databox{margin-top:16px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);overflow:hidden}
+.databox header{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 13px;border-bottom:1px solid var(--line);background:var(--surface-3);flex-wrap:wrap}
+.databox header span{font-family:"IBM Plex Mono",monospace;font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.datagrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:2px 6px;padding:12px 13px;font-family:"IBM Plex Mono",monospace;font-size:.83rem;font-variant-numeric:tabular-nums;max-height:none}
+.datagrid b{font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:4px;padding:0 3px;margin:0 -3px}
+
+.step{margin-top:16px;padding:22px;position:relative;scroll-margin-top:76px}
+.step[hidden]{display:none}
+.step .head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+.step .no{font-family:"IBM Plex Mono",monospace;font-size:.78rem;color:var(--accent);border:1px solid var(--accent);border-radius:5px;padding:1px 7px;flex:none}
+.step h3{font-size:1.18rem}
+.step .say{color:var(--ink-2);font-size:.97rem;margin:8px 0 0}
+.formula{
+  margin:14px 0;padding:13px 16px;background:var(--surface-2);border:1px solid var(--line);border-left:3px solid var(--amber);
+  border-radius:6px;font-family:"IBM Plex Mono",monospace;font-size:.92rem;color:var(--ink);overflow-x:auto;white-space:pre-wrap
+}
+.formula small{display:block;color:var(--ink-2);font-size:.82rem;margin-top:6px;white-space:normal}
+.inputs{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:14px}
+.hintline{margin-top:10px;font-size:.86rem;color:var(--ink-3)}
+.actions{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.verdict{margin-top:14px;padding:12px 14px;border-radius:8px;font-size:.93rem;display:none}
+.verdict.show{display:block}
+.verdict.good{background:var(--ok-soft);border:1px solid var(--ok);color:var(--ok)}
+.verdict.bad{background:var(--bad-soft);border:1px solid var(--bad);color:var(--bad)}
+.verdict b{font-family:"Bricolage Grotesque",sans-serif}
+.done{padding:13px 20px;display:flex;gap:12px;align-items:center;font-size:.9rem;color:var(--ink-2);flex-wrap:wrap}
+.done .no{font-family:"IBM Plex Mono",monospace;font-size:.74rem;color:var(--ink-3);border:1px solid var(--line-2);border-radius:5px;padding:1px 7px}
+.done .pts{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:.82rem;padding:2px 8px;border-radius:20px}
+.pts.p-full{background:var(--ok-soft);color:var(--ok)}
+.pts.p-part{background:var(--amber-soft);color:var(--amber)}
+.pts.p-zero{background:var(--bad-soft);color:var(--bad)}
+
+.opts{display:grid;gap:8px;margin-top:14px}
+.opt{display:flex;gap:11px;align-items:flex-start;padding:11px 14px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface-2);cursor:pointer;font-size:.95rem}
+.opt:hover{border-color:var(--accent)}
+.opt input{margin-top:5px;accent-color:var(--accent);flex:none}
+
+table.freq{width:100%;border-collapse:collapse;font-size:.88rem;margin-top:14px}
+table.freq th,table.freq td{border:1px solid var(--line);padding:7px 9px;text-align:right}
+table.freq th{background:var(--surface-3);font-weight:600;text-align:center;font-size:.78rem;letter-spacing:.03em;color:var(--ink-2)}
+table.freq td:first-child,table.freq th:first-child{text-align:left}
+table.freq tr.total td{background:var(--surface-3);font-weight:700}
+table.freq input{padding:5px 7px;font-size:.86rem;text-align:right;max-width:88px}
+.tablescroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.sumline{margin-top:9px;font-family:"IBM Plex Mono",monospace;font-size:.83rem;color:var(--ink-3)}
+.sumline.hit{color:var(--ok)}
+
+/* ---------- results ---------- */
+.result-hero{margin-top:26px;padding:30px 26px;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.grade{font-family:"Bricolage Grotesque",sans-serif;font-size:clamp(3.2rem,12vw,5rem);font-weight:800;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.grade small{font-size:.28em;color:var(--ink-3);font-weight:600}
+.badge{display:inline-block;margin-top:12px;padding:6px 15px;border-radius:20px;font-family:"Bricolage Grotesque",sans-serif;font-size:.9rem;font-weight:600}
+.fb{margin-top:12px;padding:16px 18px;border-radius:9px;border:1px solid var(--line);background:var(--surface)}
+.fb h4{font-size:1rem;margin-bottom:4px;display:flex;gap:9px;align-items:center}
+.fb .mark{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:.72rem;color:#fff;flex:none}
+.fb .mark.y{background:var(--ok)}.fb .mark.n{background:var(--bad)}.fb .mark.p{background:var(--amber)}
+.fb dl{display:grid;grid-template-columns:auto 1fr;gap:2px 14px;margin:9px 0 0;font-size:.88rem}
+.fb dt{font-family:"IBM Plex Mono",monospace;font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);padding-top:3px}
+.fb dd{margin:0;font-family:"IBM Plex Mono",monospace;font-size:.86rem}
+.fb .tip{margin-top:10px;font-size:.9rem;color:var(--ink-2);border-left:2px solid var(--amber);padding-left:11px}
+.chartbox{margin-top:14px;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+.chartbox canvas{width:100%;height:auto;display:block}
+.figcap{font-size:.82rem;color:var(--ink-3);margin-top:9px;font-family:"IBM Plex Mono",monospace}
+
+/* ---------- constancia ---------- */
+.cert{
+  margin-top:26px;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--radius);
+  padding:34px 30px;position:relative;overflow:hidden;box-shadow:var(--shadow);
+}
+.cert::before{content:"";position:absolute;inset:0;border:1px solid var(--accent);border-radius:var(--radius);margin:9px;opacity:.35;pointer-events:none}
+.cert .kicker{text-align:center;font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.24em;text-transform:uppercase;color:var(--accent)}
+.cert h2{text-align:center;font-size:clamp(1.4rem,4.5vw,1.95rem);margin:12px 0 4px}
+.cert .who{text-align:center;font-family:"Bricolage Grotesque",sans-serif;font-size:clamp(1.3rem,4.5vw,1.7rem);font-weight:700;margin:18px 0 6px;color:var(--accent);text-wrap:balance}
+.cert .body{text-align:center;max-width:56ch;margin:0 auto;color:var(--ink-2);font-size:.98rem}
+.cert .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
+.cert .meta div{text-align:center}
+.cert .meta dt{font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.cert .meta dd{margin:3px 0 0;font-family:"Bricolage Grotesque",sans-serif;font-weight:600;font-size:1rem}
+.cert .sig{margin-top:24px;text-align:center;font-size:.78rem;color:var(--ink-3);font-family:"IBM Plex Mono",monospace}
+.endbar{display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+
+.foot{margin-top:40px;text-align:center;font-size:.8rem;color:var(--ink-3);font-family:"IBM Plex Mono",monospace}
+
+@media (max-width:620px){
+  body{font-size:16px}
+  .wrap{padding:0 14px 80px}
+  .idform{grid-template-columns:1fr}
+  .step,.ctx,.cert{padding:18px 16px}
+}
+
+@media print{
+  .bar,.track,.endbar,.foot,#screen-intro,#screen-exercise,#results-body{display:none !important}
+  body{background:#fff;color:#000}
+  .cert{border:1px solid #999;box-shadow:none;margin:0;page-break-inside:avoid}
+  .cert .who{color:#000}
+}
+
+/* ---------- tablas cruzadas del laboratorio 2 ---------- */
+.xtab{width:100%;border-collapse:collapse;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.85rem;font-variant-numeric:tabular-nums}
+.xtab th,.xtab td{border:1px solid var(--line);padding:6px 7px;text-align:center}
+.xtab thead th{background:var(--accent);color:var(--on-accent);font-weight:600;font-size:.76rem;letter-spacing:.02em}
+.xtab thead th.corner{background:var(--surface-3);color:var(--ink-2);text-align:left;font-weight:600}
+.xtab tbody th{background:var(--surface-2);color:var(--ink);text-align:left;font-weight:600;font-size:.8rem;white-space:nowrap}
+.xtab td.tot,.xtab th.tot{background:var(--surface-3);font-weight:700}
+.xtab input{width:100%;max-width:74px;padding:5px 6px;text-align:center;font-size:.85rem}
+.xtab tfoot th,.xtab tfoot td{background:var(--surface-3);font-weight:700}
+.xtab caption{caption-side:top;text-align:left;padding:0 0 8px;font-family:"Source Serif 4",Georgia,serif;font-size:.9rem;color:var(--ink-2)}
+.basetab{width:100%;table-layout:auto;border-collapse:collapse;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.74rem;font-variant-numeric:tabular-nums}
+.basetab th,.basetab td{border:1px solid var(--line);padding:4px 5px;white-space:nowrap}
+.basetab td:first-child{color:var(--ink-3)}
+.basetab thead th{background:var(--surface-3);color:var(--ink-2);font-size:.66rem;letter-spacing:.04em;text-transform:uppercase;position:sticky;top:0;white-space:normal;line-height:1.25;vertical-align:bottom}
+.basetab td.num{text-align:right}
+.basetab tbody tr:nth-child(even){background:var(--surface-2)}
+.basewrap{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.pair{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+.pill{display:inline-block;padding:4px 12px;border-radius:20px;font-family:"IBM Plex Mono",monospace;font-size:.74rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:var(--accent)}
+.pill.ord{background:var(--ink-2)}
+.pill.cont,.pill.disc{background:var(--amber)}
+.pair .x{font-family:"Source Serif 4",Georgia,serif;font-size:1.05rem;color:var(--ink-3)}
+
+/* ---------- laboratorio 3: medidas de posición ---------- */
+.datatab{width:100%;border-collapse:collapse;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.82rem;font-variant-numeric:tabular-nums}
+.datatab th,.datatab td{border:1px solid var(--line);padding:5px 7px;text-align:center;white-space:nowrap}
+.datatab thead th{background:var(--surface-3);color:var(--ink-2);font-size:.68rem;letter-spacing:.05em;text-transform:uppercase;position:sticky;top:0}
+.datatab tbody tr:nth-child(even){background:var(--surface-2)}
+.datatab td.val{text-align:right;font-weight:600;padding-right:28px}
+.datatab th:nth-child(1),.datatab td:nth-child(1){width:14%}
+.datatab th:nth-child(2),.datatab td:nth-child(2){width:34%}
+.datatab th:nth-child(3),.datatab td:nth-child(3){width:52%}
+.datatab td.cat{text-align:left;color:var(--ink-2)}
+.resumen{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:8px;background:var(--surface-3);
+  border:1px solid var(--line-2);font-family:"IBM Plex Mono",monospace;font-size:.83rem}
+.chip b{color:var(--accent);font-weight:600}
+.chip.amb{background:var(--amber-soft);border-color:var(--amber-line)}
+.chip.amb b{color:var(--amber)}
+.minitab{border-collapse:collapse;font-family:"IBM Plex Mono",monospace;font-size:.85rem;margin-top:12px}
+.minitab th,.minitab td{border:1px solid var(--line);padding:6px 12px;text-align:center}
+.minitab th{background:var(--surface-3);font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-2)}
+.propbox{margin-top:14px;display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.prop{padding:10px 13px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);
+  font-family:"IBM Plex Mono",monospace;font-size:.84rem}
+.prop span{display:block;color:var(--ink-3);font-size:.74rem;margin-top:3px;font-family:"Source Serif 4",Georgia,serif}
+
+/* ---------- laboratorio 4: variabilidad, forma y diagrama de cajas ---------- */
+.sumtab{width:100%;border-collapse:collapse;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.85rem;font-variant-numeric:tabular-nums;margin-top:12px}
+.sumtab th,.sumtab td{border:1px solid var(--line);padding:6px 9px;text-align:right;white-space:nowrap}
+.sumtab thead th{background:var(--surface-3);color:var(--ink-2);font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;text-align:center}
+.sumtab tbody th{background:var(--surface-2);text-align:left;font-weight:600;color:var(--ink)}
+.sumtab tr.total td,.sumtab tr.total th{background:var(--surface-3);font-weight:700}
+.grid2{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:14px}
+.gcard{border:1px solid var(--line);border-radius:9px;background:var(--surface-2);padding:13px 15px}
+.gcard h5{font-family:"Bricolage Grotesque",sans-serif;font-size:.95rem;margin:0 0 8px;color:var(--accent);display:flex;align-items:center;gap:8px}
+.gcard h5 i{width:10px;height:10px;border-radius:3px;background:currentColor;display:inline-block;font-style:normal;flex:none}
+.gcard dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:0;font-family:"IBM Plex Mono",monospace;font-size:.84rem}
+.gcard dt{color:var(--ink-3)}
+.gcard dd{margin:0;font-weight:600;text-align:right}
+.boxwrap{margin-top:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:9px}
+.boxwrap canvas{width:100%;height:auto;display:block}
+.boxwrap .figcap{margin-top:8px}
+.tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.74rem;font-weight:600;letter-spacing:.03em;
+  background:var(--surface-3);border:1px solid var(--line-2);color:var(--ink-2)}
+.logros{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin-top:14px}
+.logro{display:flex;gap:11px;align-items:center;padding:11px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface-2)}
+.logro .ic{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:none;font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:.95rem;background:var(--surface-3);color:var(--ink-3)}
+.logro.on{border-color:var(--accent);background:var(--accent-soft)}
+.logro.on .ic{background:var(--accent);color:var(--on-accent)}
+.logro b{display:block;font-family:"Bricolage Grotesque",sans-serif;font-size:.86rem;line-height:1.25}
+.logro span{font-size:.78rem;color:var(--ink-3)}
+.logro.on span{color:var(--ink-2)}
+.warnbox{margin-top:12px;padding:11px 14px;border-radius:8px;background:var(--amber-soft);border:1px solid var(--amber-line);
+  color:var(--amber);font-size:.88rem}
+
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <div class="brand"><span class="dot"></span> Estadística · Sesión 2 · Medidas de variabilidad</div>
+    <div id="scorepill" class="scorepill" hidden>0.0 / 20</div>
+    <div id="timer" class="timer" hidden>20:00</div>
+    <button id="themeBtn" class="iconbtn" type="button" aria-label="Cambiar tema" title="Cambiar tema">◐</button>
+  </div>
+  <div class="track"><i id="trackFill"></i></div>
+</div>
+
+<main class="wrap">
+
+  <!-- ================= INTRO ================= -->
+  <section id="screen-intro">
+    <div class="hero">
+      <div class="eyebrow">Medidas de variabilidad, forma y diagrama de cajas</div>
+      <h1>Qué tan dispersos están: <em>la otra mitad de la historia</em></h1>
+      <p class="lead">Dos conjuntos de datos pueden tener la misma media y ser completamente distintos. En este laboratorio calculas rango, rango intercuartílico, varianza, desviación estándar y coeficiente de variación; comparas la variabilidad de una variable continua dentro de cada categoría de una nominal; aplicas las propiedades de la varianza; mides asimetría y curtosis, y construyes el diagrama de cajas. Un contexto distinto en cada intento. Tienes 20 minutos.</p>
+    </div>
+
+    <div class="card rulecard">
+      <div class="eyebrow">Lo que vas a usar</div>
+      <div class="rulegrid">
+        <div class="rule"><b>Rango y RI</b><span>R = X<sub>máx</sub> − X<sub>mín</sub>. El rango intercuartílico RI = Q₃ − Q₁ recoge el 50 % central.</span></div>
+        <div class="rule"><b>Varianza y desviación</b><span>s² con la fórmula abreviada; s = √s², en las mismas unidades que los datos.</span></div>
+        <div class="rule"><b>Coeficiente de variación</b><span>CV = (s / x̄) × 100. Sirve para comparar grupos con distinta media o distinta unidad.</span></div>
+        <div class="rule"><b>Forma</b><span>Asimetría A<sub>k</sub> = 3(x̄ − M<sub>e</sub>)/s: hacia qué lado se estira la distribución.</span></div>
+        <div class="rule"><b>Concentración</b><span>Curtosis K<sub>u</sub> a partir de los percentiles: qué tan apuntada es frente a la curva normal.</span></div>
+        <div class="rule"><b>Diagrama de cajas</b><span>Q₁, M<sub>e</sub> y Q₃ forman la caja; fuera de [Q₁ − 1.5 RI ; Q₃ + 1.5 RI] están los atípicos.</span></div>
+      </div>
+
+      <div class="formula">Varianza muestral (fórmula abreviada):   s² = ( Σ xᵢ² − n x̄² ) / ( n − 1 )
+Desviación estándar:   s = √s²          Coeficiente de variación:   CV = (s / x̄) × 100
+
+Propiedades de la varianza      s² ≥ 0 siempre                y de una constante:  s²(c) = 0
+                                yᵢ = xᵢ ± b   →   s²ᵧ = s²ₓ ,   sᵧ = sₓ
+                                yᵢ = c · xᵢ   →   s²ᵧ = c² s²ₓ ,   sᵧ = |c| sₓ
+                                yᵢ = c · xᵢ ± b   →   s²ᵧ = c² s²ₓ ,   sᵧ = |c| sₓ
+
+Forma          A<sub>k</sub> = 3 (x̄ − M<sub>e</sub>) / s
+Concentración  K<sub>u</sub> = (Q₃ − Q₁) / [ 2 (P₉₀ − P₁₀) ] = (P₇₅ − P₂₅) / [ 2 (P₉₀ − P₁₀) ]
+<small>La posición de cada percentil se ubica con j = k(n + 1)/100 y, si j no es entero, P<sub>k</sub> = L<sub>i</sub> + dec × (L<sub>d</sub> − L<sub>i</sub>), igual que en la Sesión 2. Recuerda: A<sub>k</sub> &lt; 0 asimetría negativa, A<sub>k</sub> = 0 simétrica, A<sub>k</sub> &gt; 0 asimetría positiva. K<sub>u</sub> = 0.263 mesocúrtica, menor platicúrtica, mayor leptocúrtica.</small></div>
+
+      <div class="eyebrow" style="margin-top:6px">Identifícate</div>
+      <div class="idform">
+        <div class="field"><label for="in-ape">Apellidos</label><input type="text" id="in-ape" autocomplete="family-name" placeholder="Quispe Rojas"></div>
+        <div class="field"><label for="in-nom">Nombres</label><input type="text" id="in-nom" autocomplete="given-name" placeholder="María Isabel"></div>
+        <div class="field"><label for="in-cod">Código / DNI <span style="text-transform:none;letter-spacing:0">(opcional)</span></label><input type="text" id="in-cod" placeholder="2026xxxxx"></div>
+        <div class="field"><label for="in-sec">Sección / NRC <span style="text-transform:none;letter-spacing:0">(opcional)</span></label><input type="text" id="in-sec" placeholder="EST42016 - 01"></div>
+        <div class="full" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <button id="startBtn" class="btn" type="button">Comenzar los 20 minutos</button>
+          <span id="idErr" style="color:var(--bad);font-size:.88rem"></span>
+        </div>
+      </div>
+      <p class="hintline">Ten a la mano una calculadora. Son 8 pasos y 20 puntos: cada paso se corrige apenas lo envías.</p>
+    </div>
+  </section>
+
+  <!-- ================= EXERCISE ================= -->
+  <section id="screen-exercise" hidden>
+    <div class="card ctx">
+      <div class="eyebrow" id="ctx-tag">Caso</div>
+      <h2 id="ctx-title"></h2>
+      <p class="lead" id="ctx-text"></p>
+      <p class="src" id="ctx-src"></p>
+      <div class="databox">
+        <header>
+          <span id="data-caption"></span>
+          <span id="data-n"></span>
+        </header>
+        <div class="basewrap"><div id="data-table"></div></div>
+      </div>
+      <div class="resumen" id="data-resumen"></div>
+    </div>
+    <div id="steps"></div>
+  </section>
+
+  <!-- ================= RESULTS ================= -->
+  <section id="screen-results" hidden>
+    <div id="results-body">
+      <div class="result-hero">
+        <div class="eyebrow">Resultado del laboratorio</div>
+        <div class="grade" id="r-grade">0.0<small> / 20</small></div>
+        <div class="badge" id="r-badge"></div>
+        <p class="lead" id="r-line" style="margin-top:14px"></p>
+      </div>
+
+      <h3 style="margin:26px 0 4px">Logros</h3>
+      <p class="lead" style="font-size:.94rem">Lo que conseguiste en este intento.</p>
+      <div class="logros" id="r-logros"></div>
+
+      <h3 style="margin:30px 0 4px">Retroalimentación paso a paso</h3>
+      <p class="lead" style="font-size:.94rem">Tu respuesta frente a la correcta, y qué revisar en cada caso.</p>
+      <div id="r-feedback"></div>
+
+      <h3 style="margin:32px 0 4px">Resumen de las medidas</h3>
+      <p class="lead" style="font-size:.94rem" id="r-tablecap"></p>
+      <div class="chartbox"><div class="tablescroll" id="r-tabla"></div></div>
+
+      <div class="chartbox" style="margin-top:14px">
+        <canvas id="r-box" height="330"></canvas>
+        <p class="figcap" id="r-boxcap"></p>
+      </div>
+
+      <div class="chartbox" style="margin-top:14px">
+        <canvas id="r-chart" height="300"></canvas>
+        <p class="figcap" id="r-figcap"></p>
+      </div>
+    </div>
+
+    <div class="cert" id="constancia">
+      <div class="kicker">Constancia de participación</div>
+      <h2>Laboratorio de medidas de variabilidad, forma y diagrama de cajas</h2>
+      <p class="body" style="text-align:center;margin-top:6px">Se deja constancia de que el/la estudiante</p>
+      <div class="who" id="c-name"></div>
+      <p class="body">participó en el laboratorio interactivo de la <strong>Sesión 2 — Medidas de resumen</strong> del curso de Estadística, calculando el rango, el rango intercuartílico, la varianza, la desviación estándar y el coeficiente de variación; comparando la variabilidad de una variable cuantitativa continua en función de una variable cualitativa nominal; aplicando las propiedades de la varianza y de la desviación estándar; calculando e interpretando los coeficientes de asimetría y de curtosis, y construyendo el diagrama de cajas con identificación de valores atípicos.</p>
+      <div class="meta">
+        <div><dt>Caso resuelto</dt><dd id="c-case"></dd></div>
+        <div><dt>Forma de la distribución</dt><dd id="c-forma"></dd></div>
+        <div><dt>Puntaje</dt><dd id="c-score"></dd></div>
+        <div><dt>Tiempo empleado</dt><dd id="c-time"></dd></div>
+        <div><dt>Fecha</dt><dd id="c-date"></dd></div>
+      </div>
+      <div class="sig">Código de verificación: <span id="c-code"></span> · Curso de Estadística · Sesión 2</div>
+    </div>
+
+    <div class="endbar">
+      <button class="btn" type="button" id="printBtn">Imprimir / Guardar constancia en PDF</button>
+      <button class="btn ghost" type="button" id="againBtn">Practicar con otro caso</button>
+    </div>
+  </section>
+
+  <p class="foot">Los contextos son situaciones reales de 2026; los datos son simulados con fines didácticos.</p>
+</main>
+
+<script>
+/* =========================================================================
+   Laboratorio — Medidas de variabilidad, forma y diagrama de cajas (Sesión 2)
+   Rango · rango intercuartílico · varianza · desviación estándar ·
+   coeficiente de variación · variabilidad de una continua en función de una
+   nominal · propiedades de la varianza · asimetría · curtosis · boxplot.
+   ========================================================================= */
+(function () {
+  "use strict";
+
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var pick = function (a) { return a[Math.floor(Math.random() * a.length)]; };
+  var shuffle = function (a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]; }); };
+  var num = function (v) { var x = parseFloat(String(v == null ? "" : v).replace(",", ".").trim()); return isFinite(x) ? x : null; };
+  var eq = function (a, b, tol) { return a != null && Math.abs(a - b) <= (tol == null ? 0.011 : tol); };
+  var f1 = function (x) { return x.toFixed(1); };
+  var f2 = function (x) { return x.toFixed(2); };
+  var r2 = function (x) { return Math.round(x * 100) / 100; };
+  /* "minutos²" está bien, pero "µg/m³²" no: las unidades compuestas se envuelven */
+  var u2 = function (u) { return /[\/²³]/.test(u) ? "(" + u + ")²" : u + "²"; };
+
+  /* ---------------- casos reales 2026 (datos simulados) ---------------- */
+  var SCEN = [
+    { tag: "Movilidad eléctrica", title: "Recarga de vehículos eléctricos en Lima",
+      subject: "vehículos", art: "los", unidad: "minutos", variable: "Tiempo de recarga",
+      text: function (n) { return "Una red de electrolineras registró el tiempo de recarga de " + n + " vehículos eléctricos atendidos durante una jornada de 2026. La gerencia quiere saber si el tiempo es igual de estable en los dos tipos de cargador."; },
+      fuente: "Registro de la red de electrolineras (datos simulados con fines didácticos)",
+      grupo: "Tipo de cargador", cats: ["Rápido", "Estándar"], mu: [29, 47], sd: [5.0, 7.5],
+      trans: "una campaña de mantenimiento" },
+
+    { tag: "Comercio digital", title: "Entregas por aplicativo de delivery",
+      subject: "pedidos", art: "los", unidad: "minutos", variable: "Tiempo de entrega",
+      text: function (n) { return "Una aplicación de delivery registró el tiempo de entrega de " + n + " pedidos atendidos en Lima durante 2026. El área de operaciones necesita saber en qué zona el servicio es más predecible."; },
+      fuente: "Panel de operaciones del aplicativo (datos simulados con fines didácticos)",
+      grupo: "Zona de entrega", cats: ["Centro", "Periferia"], mu: [27, 39], sd: [4.5, 7.0],
+      trans: "un cambio de rutas" },
+
+    { tag: "Consumo de hogares", title: "Compra semanal de alimentos",
+      subject: "hogares", art: "los", unidad: "soles", variable: "Gasto semanal en alimentos",
+      text: function (n) { return "Un estudio de consumo registró el gasto semanal en alimentos de " + n + " hogares limeños durante 2026, distinguiendo dónde realizan la compra principal."; },
+      fuente: "Estudio de consumo de hogares (datos simulados con fines didácticos)",
+      grupo: "Lugar de compra", cats: ["Mercado de barrio", "Supermercado"], mu: [180, 250], sd: [26, 38],
+      trans: "el alza de precios" },
+
+    { tag: "Energía renovable", title: "Generación de paneles solares residenciales",
+      subject: "instalaciones", art: "las", unidad: "kWh", variable: "Energía generada por día",
+      text: function (n) { return "Un programa de techos solares midió la energía generada por día en " + n + " instalaciones residenciales durante 2026 y quiere comparar la estabilidad de cada tipo de instalación."; },
+      fuente: "Programa de techos solares (datos simulados con fines didácticos)",
+      grupo: "Tipo de instalación", cats: ["Techo", "Suelo"], mu: [12.5, 17.5], sd: [2.2, 3.0],
+      trans: "la mejora de los inversores" },
+
+    { tag: "Educación e IA", title: "Uso de inteligencia artificial en la universidad",
+      subject: "estudiantes", art: "los", unidad: "horas", variable: "Horas semanales de uso de IA",
+      text: function (n) { return "El área de innovación docente encuestó a " + n + " estudiantes sobre sus horas semanales de uso de inteligencia artificial generativa en el ciclo 2026-2."; },
+      fuente: "Encuesta de innovación docente (datos simulados con fines didácticos)",
+      grupo: "Facultad", cats: ["Ingeniería", "Negocios"], mu: [12.0, 8.0], sd: [2.6, 2.0],
+      trans: "un curso de alfabetización digital" },
+
+    { tag: "Calidad del aire", title: "Material particulado PM2.5 en Lima",
+      subject: "días", art: "los", unidad: "µg/m³", variable: "Concentración diaria de PM2.5",
+      text: function (n) { return "Dos estaciones de monitoreo registraron la concentración diaria de PM2.5 durante " + n + " días del invierno de 2026."; },
+      fuente: "Estaciones de monitoreo de calidad del aire (datos simulados con fines didácticos)",
+      grupo: "Estación de monitoreo", cats: ["Lima Norte", "Lima Sur"], mu: [47, 33], sd: [7.5, 5.5],
+      trans: "el aumento del parque automotor" },
+
+    { tag: "Gastronomía", title: "Desperdicio de alimentos en restaurantes",
+      subject: "restaurantes", art: "los", unidad: "kilogramos", variable: "Merma de alimentos por semana",
+      text: function (n) { return "Un estudio sobre desperdicio de alimentos midió la merma semanal de cocina en " + n + " restaurantes de Lima durante 2026."; },
+      fuente: "Estudio de desperdicio de alimentos (datos simulados con fines didácticos)",
+      grupo: "Tipo de cocina", cats: ["Criolla", "Marina"], mu: [35, 25], sd: [6.0, 4.5],
+      trans: "un programa de aprovechamiento de insumos" },
+
+    { tag: "Reciclaje urbano", title: "Reciclaje en los hogares",
+      subject: "viviendas", art: "las", unidad: "kilogramos", variable: "Residuos reciclados por semana",
+      text: function (n) { return "Un programa municipal de economía circular pesó los residuos reciclados por semana en " + n + " viviendas durante 2026."; },
+      fuente: "Programa municipal de reciclaje (datos simulados con fines didácticos)",
+      grupo: "Tipo de vivienda", cats: ["Casa", "Departamento"], mu: [7.0, 4.6], sd: [1.4, 1.1],
+      trans: "la nueva campaña de segregación" },
+
+    { tag: "Transporte urbano", title: "Tarifas de aplicativos de taxi",
+      subject: "viajes", art: "los", unidad: "soles", variable: "Precio del viaje",
+      text: function (n) { return "Se registró el precio cobrado en " + n + " viajes de una misma ruta solicitados por aplicativo en Lima durante 2026."; },
+      fuente: "Registro de viajes por aplicativo (datos simulados con fines didácticos)",
+      grupo: "Franja horaria", cats: ["Hora punta", "Hora valle"], mu: [25, 16], sd: [4.5, 2.8],
+      trans: "el ajuste de tarifa dinámica" },
+
+    { tag: "Conectividad", title: "Consumo de datos móviles",
+      subject: "usuarios", art: "los", unidad: "GB", variable: "Consumo mensual de datos",
+      text: function (n) { return "Un operador de telecomunicaciones revisó el consumo mensual de datos de " + n + " usuarios durante 2026 para comparar la estabilidad del consumo en cada tipo de plan."; },
+      fuente: "Reporte de consumo del operador (datos simulados con fines didácticos)",
+      grupo: "Tipo de plan", cats: ["Postpago", "Prepago"], mu: [43, 27], sd: [7.0, 5.0],
+      trans: "la ampliación de la red 5G" },
+
+    { tag: "Salud pública", title: "Espera en consultorios de atención primaria",
+      subject: "pacientes", art: "los", unidad: "minutos", variable: "Tiempo de espera",
+      text: function (n) { return "Una red de centros de salud cronometró el tiempo de espera de " + n + " pacientes en 2026 para comparar el desempeño de dos modalidades de cita."; },
+      fuente: "Registro de la red de centros de salud (datos simulados con fines didácticos)",
+      grupo: "Modalidad de cita", cats: ["Cita en línea", "Orden de llegada"], mu: [22, 41], sd: [4.5, 8.0],
+      trans: "la ampliación del horario de atención" },
+
+    { tag: "Agroexportación", title: "Rendimiento de parcelas de arándano",
+      subject: "parcelas", art: "las", unidad: "toneladas", variable: "Rendimiento por hectárea",
+      text: function (n) { return "Una asociación de agroexportadores midió el rendimiento por hectárea de " + n + " parcelas de arándano en la campaña 2026."; },
+      fuente: "Asociación de agroexportadores (datos simulados con fines didácticos)",
+      grupo: "Sistema de riego", cats: ["Riego tecnificado", "Riego por gravedad"], mu: [17.5, 12.0], sd: [2.6, 2.2],
+      trans: "un programa de fertilización" }
+  ];
+
+  /* ---------------- cálculo según la Sesión 2 ---------------- */
+  function percentil(ord, k) {
+    var n = ord.length, j = k * (n + 1) / 100;
+    var ent = Math.floor(j + 1e-9), dec = j - ent;
+    if (ent < 1) return { j: j, dec: 0, entero: true, valor: ord[0], Li: ord[0], Ld: ord[0], ent: 1 };
+    if (ent >= n) return { j: j, dec: 0, entero: true, valor: ord[n - 1], Li: ord[n - 1], Ld: ord[n - 1], ent: n };
+    if (dec < 1e-9) return { j: j, dec: 0, entero: true, valor: ord[ent - 1], Li: ord[ent - 1], Ld: ord[ent - 1], ent: ent };
+    return { j: j, dec: dec, entero: false, ent: ent, Li: ord[ent - 1], Ld: ord[ent],
+             valor: ord[ent - 1] + dec * (ord[ent] - ord[ent - 1]) };
+  }
+  function mediana(ord) {
+    var n = ord.length;
+    if (n % 2 === 1) return { valor: ord[(n + 1) / 2 - 1], par: false, p1: (n + 1) / 2 };
+    var a = ord[n / 2 - 1], b = ord[n / 2];
+    return { valor: (a + b) / 2, par: true, p1: n / 2, p2: n / 2 + 1, x1: a, x2: b };
+  }
+  /* varianza muestral con la fórmula abreviada, en aritmética exacta de décimas */
+  function varianzaEnteros(t) {              /* t = valores × 10, enteros */
+    var n = t.length, S = 0, S2 = 0, i;
+    for (i = 0; i < n; i++) { S += t[i]; S2 += t[i] * t[i]; }
+    return { S: S / 10, S2: S2 / 100, n: n, xb: S / n / 10, s2: (S2 - S * S / n) / (100 * (n - 1)) };
+  }
+
+  /* Constantes "redondas" proporcionales a la media del propio grupo: así el aumento
+     siempre suena verosímil y a la vez pesa distinto en cada categoría. */
+  function redondo(x) {
+    if (x < 1.2) return 0.5;
+    if (x < 12) return Math.max(1, Math.round(x));
+    if (x < 120) return Math.round(x / 5) * 5;
+    return Math.round(x / 10) * 10;
+  }
+  function escalaB(m) {
+    var out = [], f = [0.06, 0.12, 0.20, 0.32, 0.45], i;
+    for (i = 0; i < f.length; i++) { var v = redondo(m * f[i]); if (out.indexOf(v) < 0) out.push(v); }
+    return out;
+  }
+  var CCS = [1.05, 1.08, 1.10, 1.12, 1.15, 1.20];
+
+  /* ---------------- generación del ejercicio ---------------- */
+  function randn() { var s = 0; for (var i = 0; i < 3; i++) s += Math.random(); return (s - 1.5) / 0.5; }
+
+  /* Los objetivos (signo de la asimetría y clase de curtosis) se sortean UNA vez y se
+     mantienen durante todos los intentos: así al alumno le tocan los cuatro casos por
+     igual y no siempre el más fácil de generar. */
+  function buildExercise() {
+    var quierePos = Math.random() < 0.5, quiereLepto = Math.random() < 0.5, quiereDisc = Math.random() < 0.5;
+    var quiereFlip = Math.random() < 0.5;
+    return intentar(quierePos, quiereLepto, quiereDisc, quiereFlip, 2500)
+        || intentar(quierePos, quiereLepto, null, quiereFlip, 1500)
+        || intentar(quierePos, quiereLepto, null, null, 1000)
+        || intentar(null, null, null, null, 1000);
+  }
+
+  function intentar(quierePos, quiereLepto, quiereDisc, quiereFlip, maxAtt) {
+    for (var att = 0; att < maxAtt; att++) {
+      var sc = pick(SCEN);
+      var n = pick([18, 20, 22, 24]);
+      var nA = Math.round(n / 2) + pick([-1, 0, 1]);
+      if (nA < 8 || n - nA < 8) continue;
+      var nB = n - nA, i;
+
+      var t = [], gs = [];
+      for (i = 0; i < nA; i++) { t.push(Math.round((sc.mu[0] + randn() * sc.sd[0]) * 10)); gs.push(0); }
+      for (i = 0; i < nB; i++) { t.push(Math.round((sc.mu[1] + randn() * sc.sd[1]) * 10)); gs.push(1); }
+      if (Math.min.apply(null, t) <= 5) continue;
+
+      /* dato atípico ocasional: se empuja el extremo de uno de los grupos */
+      var quiereOut = Math.random() < 0.6;
+      if (quiereOut) {
+        /* la cola larga se coloca del lado que corresponde a la asimetría buscada */
+        var arriba = quierePos == null ? (Math.random() < 0.5) : quierePos;
+        var idx = 0, best = arriba ? -1e9 : 1e9;
+        for (i = 0; i < n; i++) { if (arriba ? t[i] > best : t[i] < best) { best = t[i]; idx = i; } }
+        var salto = Math.round((2.4 + Math.random() * 1.6) * sc.sd[gs[idx]] * 10);
+        t[idx] = arriba ? t[idx] + salto : t[idx] - salto;
+        if (t[idx] <= 5) continue;
+      }
+
+      /* la media debe ser exacta con un decimal: Σ(décimas) múltiplo de n */
+      var suma = 0; for (i = 0; i < n; i++) suma += t[i];
+      var resto = ((suma % n) + n) % n;
+      if (resto !== 0) {
+        /* se ajusta un dato intermedio del primer grupo, nunca un extremo */
+        var orden = t.map(function (v, k) { return { v: v, k: k }; }).sort(function (a, b) { return a.v - b.v; });
+        var cand = orden[Math.floor(n / 2)].k;
+        t[cand] -= resto;
+        if (t[cand] <= 5) continue;
+      }
+
+      /* registros ordenados de menor a mayor */
+      var reg = [];
+      for (i = 0; i < n; i++) reg.push({ t: t[i], v: t[i] / 10, g: sc.cats[gs[i]], gi: gs[i] });
+      reg.sort(function (a, b) { return a.t - b.t || a.gi - b.gi; });
+      var vals = reg.map(function (r) { return r.v; });
+      var ts = reg.map(function (r) { return r.t; });
+
+      var G = varianzaEnteros(ts);
+      if (Math.abs(G.xb * 10 - Math.round(G.xb * 10)) > 1e-9) continue;
+      var s2 = G.s2, s = Math.sqrt(s2), xb = G.xb;
+      if (!(s > 0)) continue;
+      var CV = s / xb * 100;
+      if (CV < 12 || CV > 55) continue;
+
+      var R = vals[n - 1] - vals[0];
+      if (R <= 0) continue;
+
+      var Q1 = percentil(vals, 25), Q3 = percentil(vals, 75),
+          P10 = percentil(vals, 10), P90 = percentil(vals, 90);
+      var cuart = [Q1, Q3, P10, P90];
+      var malo = false;
+      for (i = 0; i < 4; i++) { if (cuart[i].entero || !(cuart[i].Ld > cuart[i].Li)) malo = true; }
+      if (malo) continue;
+
+      var RI = Q3.valor - Q1.valor;
+      if (RI <= 0.5) continue;
+      var Me = mediana(vals);
+      var Ak = 3 * (xb - Me.valor) / s;
+      if (Math.abs(Ak) < 0.20 || Math.abs(Ak) > 2.2) continue;
+      if (quierePos != null && (Ak > 0) !== quierePos) continue;
+
+      var Ku = (Q3.valor - Q1.valor) / (2 * (P90.valor - P10.valor));
+      if (Math.abs(Ku - 0.263) < 0.028 || Ku < 0.13 || Ku > 0.48) continue;
+      if (quiereLepto != null && (Ku > 0.263) !== quiereLepto) continue;
+
+      /* diagrama de cajas: vallas, atípicos y holgura para que no haya dudas */
+      var LI = Q1.valor - 1.5 * RI, LS = Q3.valor + 1.5 * RI;
+      var outs = [], dentro = [], margen = true;
+      for (i = 0; i < n; i++) {
+        var v = vals[i];
+        if (Math.abs(v - LI) < 0.10 * RI || Math.abs(v - LS) < 0.10 * RI) margen = false;
+        if (v < LI || v > LS) outs.push(v); else dentro.push(v);
+      }
+      if (!margen || outs.length > 2 || dentro.length < n - 2) continue;
+      var bigoteMin = dentro[0], bigoteMax = dentro[dentro.length - 1];
+
+      /* lectura de la forma dentro de la caja, coherente con el signo de Ak */
+      var dIzq = Me.valor - Q1.valor, dDer = Q3.valor - Me.valor;
+      if (Math.abs(dIzq - dDer) < 0.16 * RI) continue;
+      if (Ak > 0 && !(dIzq < dDer)) continue;
+      if (Ak < 0 && !(dIzq > dDer)) continue;
+
+      /* variabilidad de la continua dentro de cada categoría de la nominal */
+      var gA = [], gB = [];
+      for (i = 0; i < n; i++) (reg[i].gi === 0 ? gA : gB).push(reg[i].t);
+      if (gA.length < 8 || gB.length < 8) continue;
+      var VA = varianzaEnteros(gA), VB = varianzaEnteros(gB);
+      if (!(VA.s2 > 0) || !(VB.s2 > 0)) continue;
+      var mAd = r2(VA.xb), sAd = r2(Math.sqrt(VA.s2));
+      var mBd = r2(VB.xb), sBd = r2(Math.sqrt(VB.s2));
+      if (mAd <= 0 || mBd <= 0) continue;
+      var CVA = sAd / mAd * 100, CVB = sBd / mBd * 100;
+      if (CVA < 8 || CVB < 8 || CVA > 60 || CVB > 60) continue;
+      if (Math.abs(CVA - CVB) < 3) continue;
+      /* ¿el orden por s coincide con el orden por CV? Se sortea para que el alumno vea
+         los dos escenarios: aquel en que basta mirar s y aquel en que s engaña. */
+      var discrepa = (sAd < sBd) !== (CVA < CVB);
+      if (quiereDisc != null && discrepa !== quiereDisc) continue;
+
+      /* propiedades de la varianza: a un grupo se le aplica c·x + b, al otro solo +b */
+      var gi = Math.random() < 0.5 ? 0 : 1;
+      var mMul = gi === 0 ? mAd : mBd, sMul = gi === 0 ? sAd : sBd;
+      var mAdd = gi === 0 ? mBd : mAd, sAdd = gi === 0 ? sBd : sAd;
+      /* Se exploran todas las constantes posibles y se sortea si la comparación de
+         variabilidad debe INVERTIRSE o mantenerse tras el cambio. Sin esto el paso 5 se
+         resuelve adivinando: siempre ganaría el grupo que ya era el más variable. */
+      var esc1 = escalaB(mMul), esc2 = escalaB(mAdd);
+      var mulEraMasVar = gi === 0 ? (CVA > CVB) : (CVB > CVA);
+      var combos = [], ci, i1, i2;
+      for (ci = 0; ci < CCS.length; ci++) {
+        for (i1 = 0; i1 < esc1.length; i1++) {
+          for (i2 = 0; i2 < esc2.length; i2++) {
+            var cA = CCS[ci], bA = esc1[i1], bB = esc2[i2];
+            var yM = r2(cA * mMul + bA), sM = r2(cA * sMul);
+            var yA = r2(mAdd + bB), sA = r2(sAdd);
+            var vM = sM / yM * 100, vA = sA / yA * 100;
+            if (Math.abs(vM - vA) < 2) continue;
+            combos.push({ cc: cA, b1: bA, b2: bB, yMul: yM, syMul: sM, CVyMul: vM,
+                          yAdd: yA, syAdd: sA, CVyAdd: vA, flip: (vM > vA) !== mulEraMasVar });
+          }
+        }
+      }
+      var aptos = combos.filter(function (x) { return quiereFlip == null || x.flip === quiereFlip; });
+      if (!aptos.length) continue;
+      var K = pick(aptos);
+      var cc = K.cc, b1 = K.b1, b2 = K.b2;
+      var yMul = K.yMul, syMul = K.syMul, CVyMul = K.CVyMul;
+      var yAdd = K.yAdd, syAdd = K.syAdd, CVyAdd = K.CVyAdd;
+
+      return {
+        sc: sc, n: n, reg: reg, vals: vals, ts: ts,
+        S: G.S, S2: G.S2, xb: xb, s2: s2, s: s, CV: CV,
+        R: R, Q1: Q1, Q3: Q3, P10: P10, P90: P90, RI: RI, Me: Me,
+        Ak: Ak, Ku: Ku, LI: LI, LS: LS, outs: outs,
+        bigoteMin: bigoteMin, bigoteMax: bigoteMax,
+        dIzq: dIzq, dDer: dDer,
+        gA: gA, gB: gB, nA: gA.length, nB: gB.length,
+        mAd: mAd, sAd: sAd, CVA: CVA, mBd: mBd, sBd: sBd, CVB: CVB,
+        discrepa: discrepa, flip: K.flip,
+        gi: gi, cc: cc, b1: b1, b2: b2,
+        catMul: sc.cats[gi], catAdd: sc.cats[1 - gi],
+        mMul: mMul, sMul: sMul, mAdd: mAdd, sAdd: sAdd,
+        yMul: yMul, syMul: syMul, CVyMul: CVyMul,
+        yAdd: yAdd, syAdd: syAdd, CVyAdd: CVyAdd,
+        forma: Ak > 0 ? "asimétrica positiva" : "asimétrica negativa",
+        curt: Ku > 0.263 ? "leptocúrtica" : "platicúrtica"
+      };
+    }
+    return null;
+  }
+
+  var EX = null;
+  var TOTAL_SEG = 1200;
+  var ST = { alumno: {}, idx: 0, results: [], pts: 0, started: 0, left: TOTAL_SEG, tick: null, finished: false };
+
+  /* ---------------- tema y cronómetro ---------------- */
+  $("#themeBtn").addEventListener("click", function () {
+    var cur = document.documentElement.getAttribute("data-theme");
+    var sysDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var now = cur ? cur : (sysDark ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", now === "dark" ? "light" : "dark");
+  });
+  function paintTimer() {
+    var t = $("#timer"), mm = Math.floor(ST.left / 60), ss = ST.left % 60;
+    t.textContent = mm + ":" + (ss < 10 ? "0" : "") + ss;
+    t.className = "timer" + (ST.left <= 90 ? " crit" : (ST.left <= 240 ? " warn" : ""));
+  }
+  function startTimer() {
+    ST.started = Date.now(); paintTimer();
+    ST.tick = setInterval(function () {
+      ST.left--;
+      if (ST.left <= 0) { ST.left = 0; paintTimer(); finish(true); return; }
+      paintTimer();
+    }, 1000);
+  }
+  function paintScore() {
+    $("#scorepill").textContent = (Math.round(ST.pts * 10) / 10).toFixed(1) + " / 20";
+    $("#trackFill").style.width = Math.round((ST.idx / STEPS.length) * 100) + "%";
+  }
+  function fld(id, label, ancho) {
+    return '<div class="field"' + (ancho ? ' style="max-width:' + ancho + '"' : "") + '><label for="' + id + '">' + label +
+      '</label><input type="text" inputmode="decimal" autocomplete="off" id="' + id + '"></div>';
+  }
+  function mark(inp, ok) { if (!inp) return; inp.classList.remove("ok", "bad"); inp.classList.add(ok ? "ok" : "bad"); }
+  function opciones(nombre, lista) {
+    return '<div class="opts">' + lista.map(function (o, i) {
+      return '<label class="opt"><input type="radio" name="' + nombre + '" value="' + i + '"><span>' + esc(o.t) + "</span></label>";
+    }).join("") + "</div>";
+  }
+  function mcRes(root, nombre, lista, pts) {
+    var sel = root.querySelector('input[name="' + nombre + '"]:checked');
+    var ok = !!(sel && lista[+sel.value].ok);
+    return { ok: ok, pts: ok ? pts : 0,
+      elegida: sel ? lista[+sel.value].t : "sin responder",
+      correcta: lista.filter(function (o) { return o.ok; })[0].t };
+  }
+
+  /* =======================================================================
+     PASOS
+     ===================================================================== */
+  var STEPS = [
+    /* 1 · media y varianza -------------------------------------------------- */
+    {
+      title: "Paso 1 · Media y varianza muestral", max: 3,
+      html: function (e) {
+        return '<p class="say">Antes de medir la dispersión hace falta el centro. Las dos sumas que necesitas ya están calculadas ' +
+          "en el recuadro del caso: Σ xᵢ y Σ xᵢ². Usa la fórmula abreviada de la varianza para no tener que restar dato por dato.</p>" +
+          '<div class="formula">x̄ = Σ xᵢ / n = ' + f1(e.S) + " / " + e.n + "\n\n" +
+          "s² = ( Σ xᵢ² − n x̄² ) / ( n − 1 ) = ( " + f2(e.S2) + " − " + e.n + " × x̄² ) / " + (e.n - 1) +
+          "<small>Calcula primero x̄ (sale exacta con un decimal) y recién después reemplázala en s². Escribe la varianza con 2 decimales.</small></div>" +
+          '<div class="inputs">' + fld("s1a", "x̄ (" + e.sc.unidad + ")", "230px") +
+          fld("s1b", "s² (" + e.sc.unidad + "²)", "230px") + "</div>";
+      },
+      grade: function (e, root) {
+        var a = num(root.querySelector("#s1a").value), b = num(root.querySelector("#s1b").value);
+        var okA = eq(a, e.xb, 0.02), tolB = Math.max(0.06, e.s2 * 0.006), okB = eq(b, e.s2, tolB);
+        mark(root.querySelector("#s1a"), okA); mark(root.querySelector("#s1b"), okB);
+        var tip = "x̄ = " + f1(e.S) + " / " + e.n + " = " + f1(e.xb) + " " + e.sc.unidad + ".  s² = (" + f2(e.S2) + " − " +
+          e.n + " × " + f1(e.xb) + "²) / " + (e.n - 1) + " = " + f2(e.s2) + " " + e.sc.unidad + "².";
+        if (b != null && !okB && eq(b, e.s2 * (e.n - 1) / e.n, tolB * 2))
+          tip = "Dividiste entre n. La varianza muestral divide entre n − 1 = " + (e.n - 1) + ": s² = " + f2(e.s2) + ". " + tip;
+        return { pts: (okA ? 1.5 : 0) + (okB ? 1.5 : 0),
+          user: [["x̄", a == null ? "—" : a], ["s²", b == null ? "—" : b]],
+          right: [["x̄", f1(e.xb)], ["s²", f2(e.s2)]], tip: tip };
+      }
+    },
+
+    /* 2 · desviación estándar y CV ----------------------------------------- */
+    {
+      title: "Paso 2 · Desviación estándar y coeficiente de variación", max: 2,
+      html: function (e) {
+        e._q2 = shuffle([
+          { t: "Permite comparar la variabilidad de dos o más conjuntos de datos aunque tengan medias distintas o incluso unidades de medida distintas.", ok: true },
+          { t: "Se expresa en las mismas unidades que la variable, por eso reemplaza a la desviación estándar.", ok: false },
+          { t: "Mientras mayor es el coeficiente de variación, más homogéneo es el conjunto de datos.", ok: false },
+          { t: "Solo puede calcularse cuando la distribución es simétrica.", ok: false }
+        ]);
+        return '<p class="say">La desviación estándar vuelve a las unidades originales; el coeficiente de variación las elimina y ' +
+          "expresa la dispersión como porcentaje de la media.</p>" +
+          '<div class="formula">s = √s²          CV = ( s / x̄ ) × 100' +
+          "<small>Usa la varianza y la media del paso anterior. Escribe s con 2 decimales y el CV en porcentaje, también con 2 decimales.</small></div>" +
+          '<div class="inputs">' + fld("s2a", "s (" + e.sc.unidad + ")", "230px") + fld("s2b", "CV (%)", "230px") + "</div>" +
+          '<p class="say" style="margin-top:16px">¿Para qué sirve el coeficiente de variación?</p>' + opciones("q2", e._q2);
+      },
+      grade: function (e, root) {
+        var a = num(root.querySelector("#s2a").value), b = num(root.querySelector("#s2b").value);
+        var okA = eq(a, e.s, 0.04), okB = eq(b, e.CV, 0.25);
+        mark(root.querySelector("#s2a"), okA); mark(root.querySelector("#s2b"), okB);
+        var mc = mcRes(root, "q2", e._q2, 0.5);
+        return { pts: (okA ? 1 : 0) + (okB ? 0.5 : 0) + mc.pts, mcOk: mc.ok,
+          user: [["s", a == null ? "—" : a], ["CV", b == null ? "—" : b], ["Elección", mc.elegida]],
+          right: [["s", f2(e.s)], ["CV", f2(e.CV) + " %"], ["Correcta", mc.correcta]],
+          tip: "s = √" + f2(e.s2) + " = " + f2(e.s) + " " + e.sc.unidad + ". CV = (" + f2(e.s) + " / " + f1(e.xb) + ") × 100 = " +
+            f2(e.CV) + " %: la desviación estándar representa el " + f2(e.CV) + " % de la media. Un CV mayor significa más " +
+            "dispersión relativa, es decir, datos menos homogéneos; y como no tiene unidades, sirve para comparar conjuntos " +
+            "con medias o unidades distintas." };
+      }
+    },
+
+    /* 3 · rango y rango intercuartílico ------------------------------------ */
+    {
+      title: "Paso 3 · Rango y rango intercuartílico", max: 3,
+      html: function (e) {
+        return '<p class="say">El rango solo mira los dos extremos, por eso es inestable. El rango intercuartílico se queda con el ' +
+          "50 % central y no se deja arrastrar por un valor raro. Los cuartiles se ubican con la fórmula de posición de la Sesión 2.</p>" +
+          '<div class="formula">R = X<sub>máx</sub> − X<sub>mín</sub>          RI = Q₃ − Q₁\n\n' +
+          "j = k ( n + 1 ) / 100          si j no es entero:   P<sub>k</sub> = L<sub>i</sub> + dec × ( L<sub>d</sub> − L<sub>i</sub> )" +
+          "<small>Con n = " + e.n + ", la posición de Q₁ es j = 25(" + (e.n + 1) + ")/100 y la de Q₃ es j = 75(" + (e.n + 1) +
+          ")/100. Los datos de la tabla ya están ordenados. Usa 2 decimales.</small></div>" +
+          '<div class="inputs">' + fld("s3r", "R (" + e.sc.unidad + ")") + fld("s3q1", "Q₁") + fld("s3q3", "Q₃") + fld("s3ri", "RI") + "</div>";
+      },
+      grade: function (e, root) {
+        var vR = num(root.querySelector("#s3r").value), v1 = num(root.querySelector("#s3q1").value),
+            v3 = num(root.querySelector("#s3q3").value), vI = num(root.querySelector("#s3ri").value);
+        var oR = eq(vR, e.R, 0.02), o1 = eq(v1, e.Q1.valor, 0.03), o3 = eq(v3, e.Q3.valor, 0.03), oI = eq(vI, e.RI, 0.05);
+        mark(root.querySelector("#s3r"), oR); mark(root.querySelector("#s3q1"), o1);
+        mark(root.querySelector("#s3q3"), o3); mark(root.querySelector("#s3ri"), oI);
+        return { pts: (oR ? 0.5 : 0) + (o1 ? 1 : 0) + (o3 ? 1 : 0) + (oI ? 0.5 : 0),
+          user: [["R", vR == null ? "—" : vR], ["Q₁", v1 == null ? "—" : v1], ["Q₃", v3 == null ? "—" : v3], ["RI", vI == null ? "—" : vI]],
+          right: [["R", f1(e.R)], ["Q₁", f2(e.Q1.valor)], ["Q₃", f2(e.Q3.valor)], ["RI", f2(e.RI)]],
+          tip: "R = " + f1(e.vals[e.n - 1]) + " − " + f1(e.vals[0]) + " = " + f1(e.R) + ". Q₁: j = " + e.Q1.j.toFixed(2) +
+            ", Q₁ = " + f1(e.Q1.Li) + " + " + e.Q1.dec.toFixed(2) + "(" + f1(e.Q1.Ld) + " − " + f1(e.Q1.Li) + ") = " + f2(e.Q1.valor) +
+            ". Q₃: j = " + e.Q3.j.toFixed(2) + ", Q₃ = " + f2(e.Q3.valor) + ". RI = " + f2(e.RI) + " " + e.sc.unidad +
+            ": en ese ancho cabe el 50 % central de " + e.sc.art + " " + e.sc.subject + "." };
+      }
+    },
+
+    /* 4 · variabilidad por categorías de la nominal ------------------------ */
+    {
+      title: "Paso 4 · Variabilidad dentro de cada categoría", max: 2.5,
+      html: function (e) {
+        var homo = e.CVA < e.CVB ? 0 : 1;
+        /* Cada categoría aparece en una sola opción, así que nunca hay dos respuestas
+           que apunten al mismo grupo; los otros dos distractores son criterios falsos. */
+        e._q4 = shuffle([
+          { t: "En " + e.sc.cats[0] + ", porque su coeficiente de variación es menor.", ok: homo === 0 },
+          { t: "En " + e.sc.cats[1] + ", porque su coeficiente de variación es menor.", ok: homo === 1 },
+          /* la trampa de "comparar s" solo se ofrece cuando conduce a la categoría equivocada */
+          { t: e.discrepa
+              ? "En la categoría con menor desviación estándar: aunque las medias sean distintas, s sigue siendo el criterio válido."
+              : "En la categoría con menos observaciones, porque un grupo más pequeño siempre resulta más homogéneo.", ok: false },
+          { t: "En las dos por igual: al tratarse de la misma variable, la variabilidad relativa siempre coincide.", ok: false }
+        ]);
+        return '<p class="say">La misma variable continua, medida dentro de cada categoría de <strong>' + esc(e.sc.grupo) +
+          "</strong>. La Sesión 2 solo admite comparar dos conjuntos con la desviación estándar cuando sus medias son iguales; " +
+          "aquí no lo son, así que el criterio válido es el coeficiente de variación.</p>" +
+          '<div class="grid2">' +
+          '<div class="gcard"><h5><i></i>' + esc(e.sc.cats[0]) + "</h5><dl>" +
+          "<dt>n</dt><dd>" + e.nA + "</dd><dt>x̄</dt><dd>" + f2(e.mAd) + "</dd><dt>s</dt><dd>" + f2(e.sAd) + "</dd></dl></div>" +
+          '<div class="gcard"><h5><i></i>' + esc(e.sc.cats[1]) + "</h5><dl>" +
+          "<dt>n</dt><dd>" + e.nB + "</dd><dt>x̄</dt><dd>" + f2(e.mBd) + "</dd><dt>s</dt><dd>" + f2(e.sBd) + "</dd></dl></div>" +
+          "</div>" +
+          '<div class="formula" style="margin-top:14px">CV = ( s / x̄ ) × 100<small>Calcula el CV de cada categoría en porcentaje, con 2 decimales.</small></div>' +
+          '<div class="inputs">' + fld("s4a", "CV " + esc(e.sc.cats[0]) + " (%)") + fld("s4b", "CV " + esc(e.sc.cats[1]) + " (%)") + "</div>" +
+          '<p class="say" style="margin-top:16px">¿En cuál de las dos categorías hay menos variabilidad relativa?</p>' +
+          opciones("q4", e._q4);
+      },
+      grade: function (e, root) {
+        var a = num(root.querySelector("#s4a").value), b = num(root.querySelector("#s4b").value);
+        var okA = eq(a, e.CVA, 0.2), okB = eq(b, e.CVB, 0.2);
+        mark(root.querySelector("#s4a"), okA); mark(root.querySelector("#s4b"), okB);
+        var mc = mcRes(root, "q4", e._q4, 1);
+        var homo = e.CVA < e.CVB ? 0 : 1;
+        var nota = e.discrepa
+          ? " Fíjate en el detalle: la categoría con menor desviación estándar NO es la de menor CV, justamente porque sus medias son distintas."
+          : " Aquí las dos comparaciones coinciden, pero eso no siempre pasa: el criterio que decide es el CV.";
+        return { pts: (okA ? 0.75 : 0) + (okB ? 0.75 : 0) + mc.pts, mcOk: mc.ok,
+          user: [["CV " + e.sc.cats[0], a == null ? "—" : a], ["CV " + e.sc.cats[1], b == null ? "—" : b], ["Elección", mc.elegida]],
+          right: [["CV " + e.sc.cats[0], f2(e.CVA) + " %"], ["CV " + e.sc.cats[1], f2(e.CVB) + " %"], ["Correcta", mc.correcta]],
+          tip: "CV(" + e.sc.cats[0] + ") = " + f2(e.sAd) + "/" + f2(e.mAd) + " × 100 = " + f2(e.CVA) + " % y CV(" + e.sc.cats[1] +
+            ") = " + f2(e.sBd) + "/" + f2(e.mBd) + " × 100 = " + f2(e.CVB) + " %. Menor CV = datos más homogéneos, por eso la respuesta es " +
+            e.sc.cats[homo] + "." + nota };
+      }
+    },
+
+    /* 5 · propiedades de la varianza --------------------------------------- */
+    {
+      title: "Paso 5 · Propiedades de la varianza", max: 3,
+      html: function (e) {
+        var pct = Math.round((e.cc - 1) * 100);
+        var mulEsMasVar = e.CVyMul > e.CVyAdd;
+        /* Cada categoría se nombra una sola vez: dos opciones que apunten al mismo grupo
+           y se diferencien solo en la justificación castigarían una lectura rápida. */
+        e._q5 = shuffle([
+          { t: "En " + e.catMul + ", porque después del cambio su coeficiente de variación es mayor.", ok: mulEsMasVar },
+          { t: "En " + e.catAdd + ", porque después del cambio su coeficiente de variación es mayor.", ok: !mulEsMasVar },
+          { t: "En ninguno: multiplicar y sumar constantes deja igual el coeficiente de variación en los dos grupos.", ok: false },
+          /* el enunciado señala siempre al grupo equivocado, gire o no la comparación */
+          { t: (e.CVyMul > e.CVyAdd) === (e.CVA > e.CVB && e.gi === 0 || e.CVB > e.CVA && e.gi === 1)
+              ? "En el grupo contrario al de antes del cambio: al transformar los datos el orden siempre se invierte."
+              : "En el mismo grupo que antes del cambio: una transformación lineal nunca altera el orden de la comparación.", ok: false }
+        ]);
+        return '<p class="say">Tras ' + esc(e.sc.trans) + ", los valores de cada categoría se transforman. No hace falta recalcular " +
+          "nada dato por dato: las propiedades permiten obtener directamente la nueva media y la nueva desviación estándar.</p>" +
+          '<div class="propbox">' +
+          '<div class="prop">s² ≥ 0<span>La varianza nunca es negativa</span></div>' +
+          '<div class="prop">s²(c) = 0<span>Un conjunto sin variación tiene varianza cero</span></div>' +
+          '<div class="prop">yᵢ = xᵢ ± b   →   s²ᵧ = s²ₓ ,   sᵧ = sₓ<span>Sumar una constante NO cambia la dispersión</span></div>' +
+          '<div class="prop">yᵢ = c · xᵢ   →   s²ᵧ = c² s²ₓ ,   sᵧ = |c| sₓ<span>Multiplicar sí la cambia</span></div>' +
+          '<div class="prop">yᵢ = c · xᵢ ± b   →   s²ᵧ = c² s²ₓ ,   sᵧ = |c| sₓ<span>La constante aditiva se ignora</span></div>' +
+          "</div>" +
+          '<div class="formula" style="margin-top:14px">' + esc(e.catMul) + ":   yᵢ = " + e.cc + " · xᵢ + " + e.b1 +
+          "   (aumento de " + pct + " % más " + e.b1 + " " + e.sc.unidad + ")\n" +
+          esc(e.catAdd) + ":   yᵢ = xᵢ + " + e.b2 + "   (solo " + e.b2 + " " + e.sc.unidad + " más)" +
+          "<small>Para " + esc(e.catAdd) + " el cálculo ya está hecho: ȳ = " + f2(e.yAdd) + ", sᵧ = " + f2(e.syAdd) +
+          " y CV = " + f2(e.CVyAdd) + " %. Completa los tres valores de " + esc(e.catMul) + " partiendo de x̄ = " + f2(e.mMul) +
+          " y s = " + f2(e.sMul) + ".</small></div>" +
+          '<div class="inputs">' + fld("s5m", "Nueva media · " + esc(e.catMul)) +
+          fld("s5s", "Nueva s · " + esc(e.catMul)) + fld("s5c", "Nuevo CV · " + esc(e.catMul) + " (%)") + "</div>" +
+          '<p class="say" style="margin-top:16px">Después de los cambios, ¿en qué categoría los valores son más heterogéneos?</p>' +
+          opciones("q5", e._q5);
+      },
+      grade: function (e, root) {
+        var m = num(root.querySelector("#s5m").value), s = num(root.querySelector("#s5s").value), c = num(root.querySelector("#s5c").value);
+        var oM = eq(m, e.yMul, 0.05), oS = eq(s, e.syMul, 0.04), oC = eq(c, e.CVyMul, 0.25);
+        mark(root.querySelector("#s5m"), oM); mark(root.querySelector("#s5s"), oS); mark(root.querySelector("#s5c"), oC);
+        var mc = mcRes(root, "q5", e._q5, 0.75);
+        var tip = "ȳ = c·x̄ + b = " + e.cc + " × " + f2(e.mMul) + " + " + e.b1 + " = " + f2(e.yMul) + ".  sᵧ = |c|·sₓ = " +
+          e.cc + " × " + f2(e.sMul) + " = " + f2(e.syMul) + " (la constante " + e.b1 + " no interviene).  CV = " +
+          f2(e.syMul) + "/" + f2(e.yMul) + " × 100 = " + f2(e.CVyMul) + " %, frente a " + f2(e.CVyAdd) + " % de " + e.catAdd + ".";
+        if (s != null && !oS && eq(s, e.cc * e.sMul + e.b1, 0.1))
+          tip = "Le sumaste la constante a la desviación estándar. Sumar b no altera la dispersión: sᵧ = " + e.cc + " × " +
+            f2(e.sMul) + " = " + f2(e.syMul) + ". " + tip;
+        tip += " Sumar una constante no cambia s, pero sí sube la media, de modo que el CV baja; nunca lo aumenta.";
+        return { pts: (oM ? 0.75 : 0) + (oS ? 0.75 : 0) + (oC ? 0.75 : 0) + mc.pts, mcOk: mc.ok,
+          user: [["ȳ", m == null ? "—" : m], ["sᵧ", s == null ? "—" : s], ["CV", c == null ? "—" : c], ["Elección", mc.elegida]],
+          right: [["ȳ", f2(e.yMul)], ["sᵧ", f2(e.syMul)], ["CV", f2(e.CVyMul) + " %"], ["Correcta", mc.correcta]], tip: tip };
+      }
+    },
+
+    /* 6 · asimetría --------------------------------------------------------- */
+    {
+      title: "Paso 6 · Coeficiente de asimetría", max: 2.5,
+      html: function (e) {
+        e._q6 = shuffle([
+          { t: e.Ak > 0
+              ? "Aₖ > 0: la distribución es asimétrica positiva, con una cola hacia la derecha; la media es mayor que la mediana."
+              : "Aₖ < 0: la distribución es asimétrica negativa, con una cola hacia la izquierda; la media es menor que la mediana.", ok: true },
+          { t: e.Ak > 0
+              ? "Aₖ > 0: la distribución es asimétrica negativa, con una cola hacia la izquierda."
+              : "Aₖ < 0: la distribución es asimétrica positiva, con una cola hacia la derecha.", ok: false },
+          { t: "El signo de Aₖ no dice nada sobre la forma: solo su valor absoluto importa.", ok: false },
+          { t: (e.Ak > 0 ? "Aₖ > 0" : "Aₖ < 0") + " indica que la mayoría de los datos está por encima de la media.", ok: false }
+        ]);
+        var reg = e.Me.par
+          ? "n = " + e.n + " es par, así que Me es la semisuma de los datos de las posiciones " + e.Me.p1 + " y " + e.Me.p2 + "."
+          : "n = " + e.n + " es impar, así que Me es el dato de la posición " + e.Me.p1 + ".";
+        return '<p class="say">Las medidas de forma dicen hacia qué lado se estira la distribución. ' + reg + "</p>" +
+          '<div class="formula">A<sub>k</sub> = 3 ( x̄ − M<sub>e</sub> ) / s' +
+          "<small>Usa la media y la desviación estándar que ya calculaste. Escribe A<sub>k</sub> con 3 decimales " +
+          "(no olvides el signo).</small></div>" +
+          '<div class="inputs">' + fld("s6m", "Mediana (" + e.sc.unidad + ")") + fld("s6a", "Aₖ") + "</div>" +
+          '<p class="say" style="margin-top:16px">¿Qué significa el resultado?</p>' + opciones("q6", e._q6);
+      },
+      grade: function (e, root) {
+        var m = num(root.querySelector("#s6m").value), a = num(root.querySelector("#s6a").value);
+        var oM = eq(m, e.Me.valor, 0.03), oA = eq(a, e.Ak, 0.06);
+        mark(root.querySelector("#s6m"), oM); mark(root.querySelector("#s6a"), oA);
+        var mc = mcRes(root, "q6", e._q6, 0.75);
+        var det = e.Me.par ? "Me = (" + f1(e.Me.x1) + " + " + f1(e.Me.x2) + ") / 2 = " + f2(e.Me.valor)
+                           : "Me = " + f2(e.Me.valor);
+        return { pts: (oM ? 0.75 : 0) + (oA ? 1 : 0) + mc.pts, mcOk: mc.ok,
+          user: [["Mediana", m == null ? "—" : m], ["Aₖ", a == null ? "—" : a], ["Elección", mc.elegida]],
+          right: [["Mediana", f2(e.Me.valor)], ["Aₖ", e.Ak.toFixed(3)], ["Correcta", mc.correcta]],
+          tip: det + ". Aₖ = 3(" + f1(e.xb) + " − " + f2(e.Me.valor) + ") / " + f2(e.s) + " = " + e.Ak.toFixed(3) +
+            ", es decir, distribución " + e.forma + "." };
+      }
+    },
+
+    /* 7 · curtosis ---------------------------------------------------------- */
+    {
+      title: "Paso 7 · Coeficiente de curtosis", max: 2,
+      html: function (e) {
+        e._q7 = shuffle([
+          { t: e.Ku > 0.263
+              ? "Kᵤ > 0.263: la distribución es leptocúrtica, más apuntada que la normal."
+              : "Kᵤ < 0.263: la distribución es platicúrtica, más achatada que la normal.", ok: true },
+          { t: e.Ku > 0.263
+              ? "Kᵤ > 0.263: la distribución es platicúrtica, más achatada que la normal."
+              : "Kᵤ < 0.263: la distribución es leptocúrtica, más apuntada que la normal.", ok: false },
+          { t: "La distribución es mesocúrtica, porque cualquier valor cercano a 0,25 se considera normal.", ok: false },
+          { t: "El coeficiente de curtosis indica hacia qué lado se estira la distribución.", ok: false }
+        ]);
+        return '<p class="say">Las medidas de concentración comparan el apuntamiento de la distribución con el de la curva normal. Se construyen con ' +
+          "cuatro percentiles: los dos cuartiles que ya tienes y los deciles extremos.</p>" +
+          '<div class="formula">K<sub>u</sub> = ( Q₃ − Q₁ ) / [ 2 ( P₉₀ − P₁₀ ) ] = ( P₇₅ − P₂₅ ) / [ 2 ( P₉₀ − P₁₀ ) ]\n\n' +
+          "Para este conjunto:   P₁₀ = " + f2(e.P10.valor) + "     P₉₀ = " + f2(e.P90.valor) +
+          "<small>Ambos se obtuvieron con la misma fórmula de posición: j = 10(" + (e.n + 1) + ")/100 = " + e.P10.j.toFixed(2) +
+          " y j = 90(" + (e.n + 1) + ")/100 = " + e.P90.j.toFixed(2) + ". Usa los cuartiles del paso 3 y escribe K<sub>u</sub> con 3 decimales." +
+          "</small></div>" +
+          '<div class="inputs">' + fld("s7", "Kᵤ", "230px") + "</div>" +
+          '<p class="say" style="margin-top:16px">¿Cómo se clasifica la distribución?</p>' + opciones("q7", e._q7);
+      },
+      grade: function (e, root) {
+        var v = num(root.querySelector("#s7").value), ok = eq(v, e.Ku, 0.012);
+        mark(root.querySelector("#s7"), ok);
+        var mc = mcRes(root, "q7", e._q7, 0.75);
+        return { pts: (ok ? 1.25 : 0) + mc.pts, mcOk: mc.ok,
+          user: [["Kᵤ", v == null ? "—" : v], ["Elección", mc.elegida]],
+          right: [["Kᵤ", e.Ku.toFixed(3)], ["Correcta", mc.correcta]],
+          tip: "Kᵤ = (" + f2(e.Q3.valor) + " − " + f2(e.Q1.valor) + ") / [2(" + f2(e.P90.valor) + " − " + f2(e.P10.valor) +
+            ")] = " + e.Ku.toFixed(3) + ". Como " + (e.Ku > 0.263 ? "supera" : "no llega a") + " 0.263, la distribución es " + e.curt +
+            ". El criterio de la sesión no admite márgenes: solo Kᵤ = 0.263 es mesocúrtica, por debajo es platicúrtica y por encima leptocúrtica." };
+      }
+    },
+
+    /* 8 · diagrama de cajas ------------------------------------------------- */
+    {
+      title: "Paso 8 · Diagrama de cajas y valores atípicos", max: 2,
+      html: function (e) {
+        var cerca = e.dIzq < e.dDer ? "primer cuartil" : "tercer cuartil";
+        e._q8 = shuffle([
+          { t: "La mediana está más cerca del " + cerca + ", así que el 50 % central presenta asimetría " +
+               (e.dIzq < e.dDer ? "positiva" : "negativa") + ".", ok: true },
+          { t: "La mediana está más cerca del " + (e.dIzq < e.dDer ? "tercer cuartil" : "primer cuartil") + ", así que el 50 % central presenta asimetría " +
+               (e.dIzq < e.dDer ? "negativa" : "positiva") + ".", ok: false },
+          { t: "La mediana parte la caja en dos mitades iguales, así que el 50 % central es simétrico.", ok: false },
+          { t: "La posición de la mediana dentro de la caja no aporta información sobre la forma.", ok: false }
+        ]);
+        return '<p class="say">Ya tienes Q₁, Q₃ y RI. Falta lo que decide si un dato es atípico: las vallas o límites del ' +
+          "intervalo [ Q₁ − 1.5 RI ; Q₃ + 1.5 RI ]. Los bigotes no llegan hasta esos límites, sino hasta el dato más extremo " +
+          "que queda dentro de ellos.</p>" +
+          '<div class="formula">Valla inferior = Q₁ − 1.5 × RI          Valla superior = Q₃ + 1.5 × RI\n' +
+          "Es atípico todo dato fuera del intervalo [ Q₁ − 1.5 RI ; Q₃ + 1.5 RI ]" +
+          "<small>Calcula las dos vallas con 2 decimales y cuenta cuántos datos de la tabla quedan fuera (puede ser 0).</small></div>" +
+          '<div class="inputs">' + fld("s8i", "Valla inferior") + fld("s8s", "Valla superior") + fld("s8n", "N.º de atípicos") + "</div>" +
+          '<p class="say" style="margin-top:16px">Con Q₁, la mediana y Q₃ que ya calculaste, ¿qué se puede decir del 50 % central ' +
+          "de la caja?</p>" + opciones("q8", e._q8) +
+          '<div class="boxwrap" id="bx8-wrap" hidden><canvas id="bx8" height="190"></canvas>' +
+          '<p class="figcap" id="bx8-cap"></p></div>';
+      },
+      grade: function (e, root) {
+        var i = num(root.querySelector("#s8i").value), s = num(root.querySelector("#s8s").value), c = num(root.querySelector("#s8n").value);
+        var oI = eq(i, e.LI, 0.06), oS = eq(s, e.LS, 0.06), oC = c != null && Math.round(c) === e.outs.length;
+        mark(root.querySelector("#s8i"), oI); mark(root.querySelector("#s8s"), oS); mark(root.querySelector("#s8n"), oC);
+        var mc = mcRes(root, "q8", e._q8, 0.5);
+        var det = e.outs.length === 0
+          ? "Ningún dato queda fuera de ese intervalo, así que no hay valores atípicos y los bigotes llegan al mínimo (" +
+            f1(e.vals[0]) + ") y al máximo (" + f1(e.vals[e.n - 1]) + ")."
+          : "Queda" + (e.outs.length === 1 ? "" : "n") + " fuera " + e.outs.map(f1).join(" y ") + ": " +
+            (e.outs.length === 1 ? "es un valor atípico" : "son valores atípicos") + ", que en el gráfico se marcan con un asterisco. " +
+            "Los bigotes se detienen en " + f1(e.bigoteMin) + " y " + f1(e.bigoteMax) + ".";
+        return { pts: (oI ? 0.5 : 0) + (oS ? 0.5 : 0) + (oC ? 0.5 : 0) + mc.pts, mcOk: mc.ok,
+          user: [["Valla inferior", i == null ? "—" : i], ["Valla superior", s == null ? "—" : s],
+                 ["Atípicos", c == null ? "—" : c], ["Elección", mc.elegida]],
+          right: [["Valla inferior", f2(e.LI)], ["Valla superior", f2(e.LS)],
+                  ["Atípicos", String(e.outs.length)], ["Correcta", mc.correcta]],
+          tip: "Q₁ − 1.5 RI = " + f2(e.Q1.valor) + " − 1.5 × " + f2(e.RI) + " = " + f2(e.LI) + " y Q₃ + 1.5 RI = " +
+            f2(e.Q3.valor) + " + 1.5 × " + f2(e.RI) + " = " + f2(e.LS) + ". " + det +
+            " Sobre la forma: Me − Q₁ = " + f2(e.dIzq) + " frente a Q₃ − Me = " + f2(e.dDer) + ", así que la mediana está más cerca de " +
+            (e.dIzq < e.dDer ? "Q₁ y el 50 % central es asimétrico positivo." : "Q₃ y el 50 % central es asimétrico negativo.") };
+      },
+      after: function (e, root) {
+        var w = root.querySelector("#bx8-wrap");
+        if (!w) return;
+        w.hidden = false;
+        drawBox(root.querySelector("#bx8"), [serieTotal(e)], e, true);
+        root.querySelector("#bx8-cap").textContent =
+          "Diagrama de cajas · " + e.sc.variable + " (" + e.sc.unidad + "). Las líneas punteadas son las vallas.";
+      }
+    }
+  ];
+
+  /* =======================================================================
+     DIAGRAMA DE CAJAS
+     ===================================================================== */
+  function resumenBox(vals, etiqueta) {
+    var v = vals.slice().sort(function (a, b) { return a - b; });
+    var q1 = percentil(v, 25).valor, me = mediana(v).valor, q3 = percentil(v, 75).valor;
+    var ri = q3 - q1, li = q1 - 1.5 * ri, ls = q3 + 1.5 * ri;
+    var outs = [], dentro = [];
+    v.forEach(function (x) { (x < li || x > ls) ? outs.push(x) : dentro.push(x); });
+    return { label: etiqueta, q1: q1, me: me, q3: q3, li: li, ls: ls, outs: outs,
+             lo: dentro[0], hi: dentro[dentro.length - 1] };
+  }
+  function serieTotal(e) {
+    return { label: (e.sc.art === "las" ? "Todas las " : "Todos los ") + e.sc.subject, q1: e.Q1.valor, me: e.Me.valor, q3: e.Q3.valor,
+             li: e.LI, ls: e.LS, outs: e.outs, lo: e.bigoteMin, hi: e.bigoteMax };
+  }
+  function drawBox(cv, series, e, vallas) {
+    if (!cv) return;
+    var cs = getComputedStyle(document.documentElement);
+    var C = function (v) { return cs.getPropertyValue(v).trim(); };
+    var W = cv.parentNode.clientWidth - 32;
+    if (W < 240) W = 240;
+    var estrecho = W < 470;                     /* en móvil la etiqueta va encima de la caja */
+    var filas = series.length;
+    var filaH = estrecho ? (vallas ? 96 : 84) : 74;
+    var H = 62 + filas * filaH;
+    var dpr = window.devicePixelRatio || 1;
+    cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + "px"; cv.style.height = H + "px";
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, W, H);
+
+    var padL = 12, padR = 16, padT = 14, padB = 50;
+    var etiqW = 0;
+    g.font = '11px "IBM Plex Mono", monospace';
+    if (!estrecho) {
+      series.forEach(function (s) { etiqW = Math.max(etiqW, g.measureText(s.label).width); });
+      etiqW = Math.min(etiqW + 14, W * 0.34);
+    }
+    var x0 = padL + etiqW, pw = W - x0 - padR;
+
+    var lo = 1e18, hi = -1e18;
+    series.forEach(function (s) {
+      var arr = [s.lo, s.hi, s.q1, s.q3].concat(s.outs);
+      if (vallas) arr = arr.concat([s.li, s.ls]);
+      arr.forEach(function (v) { if (v < lo) lo = v; if (v > hi) hi = v; });
+    });
+    var span = (hi - lo) || 1;
+    lo -= span * 0.08; hi += span * 0.08; span = hi - lo;
+    var X = function (v) { return x0 + (v - lo) / span * pw; };
+    var base = H - padB;
+
+    /* eje */
+    g.strokeStyle = C("--line-2"); g.lineWidth = 1;
+    g.beginPath(); g.moveTo(x0, base + 8); g.lineTo(x0 + pw, base + 8); g.stroke();
+    g.fillStyle = C("--ink-3"); g.textAlign = "center"; g.textBaseline = "top";
+    g.font = '10px "IBM Plex Mono", monospace';
+    for (var t = 0; t <= 4; t++) {
+      var vv = lo + span * t / 4, x = X(vv);
+      g.beginPath(); g.moveTo(x, base + 8); g.lineTo(x, base + 13); g.stroke();
+      g.fillText(vv.toFixed(1), x, base + 16);
+    }
+    if (e && e.sc) { g.fillStyle = C("--ink-3"); g.fillText(e.sc.unidad, x0 + pw / 2, base + 28); }
+
+    var colores = [C("--accent"), C("--amber"), C("--ink-2")];
+    series.forEach(function (s, i) {
+      var yc = padT + (estrecho ? (vallas ? 52 : 40) : 30) + i * filaH, alto = 34, col = colores[i % colores.length];
+
+      if (vallas) {
+        g.strokeStyle = C("--line-2"); g.lineWidth = 1; g.setLineDash([3, 3]);
+        [s.li, s.ls].forEach(function (v) {
+          g.beginPath(); g.moveTo(X(v), yc - alto / 2 - 12); g.lineTo(X(v), yc + alto / 2 + 12); g.stroke();
+        });
+        g.setLineDash([]);
+        g.fillStyle = C("--ink-3"); g.font = '9px "IBM Plex Mono", monospace';
+        g.textAlign = "center"; g.textBaseline = "bottom";
+        g.fillText("valla inf.", X(s.li), yc - alto / 2 - 14);
+        g.fillText("valla sup.", X(s.ls), yc - alto / 2 - 14);
+      }
+
+      /* bigotes */
+      g.strokeStyle = col; g.lineWidth = 1.4;
+      g.beginPath(); g.moveTo(X(s.lo), yc); g.lineTo(X(s.q1), yc);
+      g.moveTo(X(s.q3), yc); g.lineTo(X(s.hi), yc);
+      g.moveTo(X(s.lo), yc - 9); g.lineTo(X(s.lo), yc + 9);
+      g.moveTo(X(s.hi), yc - 9); g.lineTo(X(s.hi), yc + 9);
+      g.stroke();
+
+      /* caja */
+      var bx = X(s.q1), bw = Math.max(X(s.q3) - X(s.q1), 2);
+      g.fillStyle = C("--accent-soft"); g.globalAlpha = i === 0 ? 1 : .75;
+      g.fillRect(bx, yc - alto / 2, bw, alto); g.globalAlpha = 1;
+      g.strokeStyle = col; g.lineWidth = 1.5;
+      g.strokeRect(bx, yc - alto / 2, bw, alto);
+
+      /* mediana */
+      g.strokeStyle = C("--bad"); g.lineWidth = 2.4;
+      g.beginPath(); g.moveTo(X(s.me), yc - alto / 2); g.lineTo(X(s.me), yc + alto / 2); g.stroke();
+
+      /* atípicos */
+      g.fillStyle = C("--bad"); g.font = 'bold 15px "IBM Plex Mono", monospace';
+      g.textAlign = "center"; g.textBaseline = "middle";
+      s.outs.forEach(function (v) { g.fillText("*", X(v), yc + 1); });
+
+      /* etiqueta de la serie */
+      g.fillStyle = C("--ink-2"); g.font = '11px "IBM Plex Mono", monospace';
+      if (estrecho) {
+        g.textAlign = "left"; g.textBaseline = "bottom";
+        g.fillText(s.label, x0, yc - alto / 2 - (vallas ? 30 : 22), pw);
+      } else {
+        g.textAlign = "right"; g.textBaseline = "middle";
+        g.fillText(s.label, x0 - 10, yc, etiqW - 12);
+      }
+
+      /* valores clave: las etiquetas se abren hacia afuera para que nunca choquen */
+      g.fillStyle = C("--ink-3"); g.font = '9px "IBM Plex Mono", monospace';
+      g.textBaseline = "top";
+      g.textAlign = "right"; g.fillText("Q₁ " + s.q1.toFixed(1), X(s.q1) + 4, yc + alto / 2 + 4);
+      g.textAlign = "left";  g.fillText("Q₃ " + s.q3.toFixed(1), X(s.q3) - 4, yc + alto / 2 + 4);
+      g.fillStyle = C("--bad"); g.textAlign = "center";
+      g.fillText("Me " + s.me.toFixed(1), X(s.me), yc - alto / 2 - 12);
+    });
+  }
+
+  /* =======================================================================
+     FLUJO
+     ===================================================================== */
+  $("#startBtn").addEventListener("click", function () {
+    var ap = $("#in-ape").value.trim(), no = $("#in-nom").value.trim();
+    if (ap.length < 2 || no.length < 2) { $("#idErr").textContent = "Escribe tus apellidos y nombres para poder emitir la constancia."; return; }
+    ST.alumno = { ape: ap, nom: no, cod: $("#in-cod").value.trim(), sec: $("#in-sec").value.trim() };
+    EX = buildExercise();
+    if (!EX) { $("#idErr").textContent = "No se pudo generar el caso; vuelve a intentarlo."; return; }
+    renderContext();
+    $("#screen-intro").hidden = true;
+    $("#screen-exercise").hidden = false;
+    $("#timer").hidden = false; $("#scorepill").hidden = false;
+    paintScore(); startTimer(); renderStep(0);
+  });
+
+  function renderContext() {
+    var e = EX, sc = e.sc;
+    $("#ctx-tag").textContent = "Caso · " + sc.tag;
+    $("#ctx-title").textContent = sc.title;
+    $("#ctx-text").innerHTML = sc.text(e.n) + " Los datos ya están ordenados de menor a mayor.";
+    $("#ctx-src").textContent = "Fuente: " + sc.fuente;
+    $("#data-caption").textContent = sc.variable + " (" + sc.unidad + ") · " + sc.grupo;
+    $("#data-n").textContent = "n = " + e.n + " " + sc.subject;
+    var h = '<table class="datatab"><thead><tr><th>Posición</th><th>' + esc(sc.variable) + " (" + esc(sc.unidad) +
+      ")</th><th>" + esc(sc.grupo) + "</th></tr></thead><tbody>";
+    e.reg.forEach(function (r, i) {
+      h += "<tr><td>" + (i + 1) + '</td><td class="val">' + f1(r.v) + '</td><td class="cat">' + esc(r.g) + "</td></tr>";
+    });
+    $("#data-table").innerHTML = h + "</tbody></table>";
+    $("#data-resumen").innerHTML =
+      '<span class="chip">n = <b>' + e.n + "</b></span>" +
+      '<span class="chip amb">Σ xᵢ = <b>' + f1(e.S) + "</b></span>" +
+      '<span class="chip amb">Σ xᵢ² = <b>' + f2(e.S2) + "</b></span>" +
+      '<span class="chip">Mínimo = <b>' + f1(e.vals[0]) + "</b></span>" +
+      '<span class="chip">Máximo = <b>' + f1(e.vals[e.n - 1]) + "</b></span>" +
+      '<span class="chip">' + esc(e.sc.cats[0]) + ": n = <b>" + e.nA + "</b></span>" +
+      '<span class="chip">' + esc(e.sc.cats[1]) + ": n = <b>" + e.nB + "</b></span>";
+  }
+
+  function renderStep(i) {
+    var step = STEPS[i], e = EX;
+    var card = document.createElement("section");
+    card.className = "card step"; card.id = "step-" + i;
+    card.innerHTML = '<div class="head"><span class="no">' + (i + 1) + "/" + STEPS.length + '</span><h3>' + step.title + "</h3></div>" +
+      step.html(e) +
+      '<div class="verdict" id="v-' + i + '"></div>' +
+      '<div class="actions"><button class="btn" type="button" id="go-' + i + '">Comprobar y continuar</button>' +
+      '<span style="font-size:.85rem;color:var(--ink-3)">Vale ' + step.max + " punto" + (step.max === 1 ? "" : "s") + "</span></div>";
+    $("#steps").appendChild(card);
+    var first = card.querySelector('input[type="text"]');
+    if (first) first.focus({ preventScroll: true });
+    card.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    var btn = $("#go-" + i), checked = false;
+    btn.addEventListener("click", function () {
+      if (ST.finished) return;
+      if (!checked) {
+        checked = true;
+        var res = step.grade(e, card);
+        res.title = step.title; res.max = step.max;
+        ST.results[i] = res; ST.pts += res.pts; paintScore();
+        var v = $("#v-" + i);
+        var full = res.pts >= step.max - 1e-9, zero = res.pts <= 1e-9;
+        v.className = "verdict show " + (zero ? "bad" : "good");
+        v.innerHTML = "<b>" + (full ? "Correcto · " : (zero ? "Incorrecto · " : "Parcialmente correcto · ")) +
+          (Math.round(res.pts * 100) / 100) + " / " + step.max + " pts</b><br>" + esc(res.tip);
+        Array.prototype.forEach.call(card.querySelectorAll("input"), function (x) { x.disabled = true; });
+        if (step.after) { try { step.after(e, card); } catch (err) {} }
+        btn.textContent = i === STEPS.length - 1 ? "Ver resultados →" : "Continuar →";
+      } else {
+        var r = ST.results[i], full2 = r.pts >= r.max - 1e-9, zero2 = r.pts <= 1e-9;
+        card.className = "card done";
+        card.innerHTML = '<span class="no">' + (i + 1) + "</span><span>" + esc(r.title) + '</span><span class="pts ' +
+          (full2 ? "p-full" : (zero2 ? "p-zero" : "p-part")) + '">' + (Math.round(r.pts * 100) / 100) + " / " + r.max + "</span>";
+        ST.idx = i + 1; paintScore();
+        if (i + 1 < STEPS.length) renderStep(i + 1); else finish(false);
+      }
+    });
+  }
+
+  /* ---------------- resultados ---------------- */
+  function finish(byTime) {
+    if (ST.finished) return;
+    ST.finished = true;
+    if (ST.tick) { clearInterval(ST.tick); ST.tick = null; }
+    var used = TOTAL_SEG - ST.left, e = EX, i;
+    for (i = 0; i < STEPS.length; i++) {
+      if (!ST.results[i]) ST.results[i] = {
+        title: STEPS[i].title, max: STEPS[i].max, pts: 0,
+        user: [["Respuesta", "sin responder — se acabó el tiempo"]], right: [["—", "—"]],
+        tip: "No llegaste a este paso. Repite el laboratorio: te tocará otro caso con otros datos."
+      };
+    }
+    var pts = Math.round(ST.pts * 10) / 10;
+    $("#screen-exercise").hidden = true;
+    $("#screen-results").hidden = false;
+    $("#timer").hidden = true;
+    $("#trackFill").style.width = "100%";
+
+    $("#r-grade").innerHTML = pts.toFixed(1) + "<small> / 20</small>";
+    var band = pts >= 18 ? ["Excelente", "var(--ok-soft)", "var(--ok)"]
+      : pts >= 15 ? ["Logrado", "var(--accent-soft)", "var(--accent)"]
+      : pts >= 11 ? ["En proceso", "var(--amber-soft)", "var(--amber)"]
+      : ["Requiere refuerzo", "var(--bad-soft)", "var(--bad)"];
+    var bg = $("#r-badge"); bg.textContent = band[0]; bg.style.background = band[1]; bg.style.color = band[2];
+    var mm = Math.floor(used / 60), ss = used % 60;
+    $("#r-line").textContent = (byTime ? "Se agotaron los 20 minutos. " : "") + "Terminaste en " + mm + " min " +
+      (ss < 10 ? "0" : "") + ss + " s. " +
+      (pts >= 15 ? "Manejas la dispersión, la forma y la lectura del diagrama de cajas."
+                 : "Revisa la retroalimentación: la fórmula abreviada de la varianza y las propiedades son lo que más pesa.");
+
+    /* logros */
+    var calcOK = [0, 2, 6].every(function (k) { return ST.results[k].pts >= STEPS[k].max - 1e-9; });
+    var mcOK = [1, 3, 4, 5, 6, 7].every(function (k) { return ST.results[k].mcOk === true; });
+    var logros = [
+      { on: calcOK, ic: "s²", t: "Calculista", d: "Varianza, cuartiles y curtosis exactos" },
+      { on: pts >= 15, ic: "CV", t: "Analista", d: "15 puntos o más en el laboratorio" },
+      { on: used <= 900 && pts >= 13, ic: "⏱", t: "Ágil", d: "Buen puntaje en menos de 15 minutos" },
+      { on: mcOK, ic: "?", t: "Intérprete", d: "Todas las preguntas de interpretación con puntaje" }
+    ];
+    $("#r-logros").innerHTML = logros.map(function (l) {
+      return '<div class="logro' + (l.on ? " on" : "") + '"><span class="ic">' + esc(l.ic) + "</span><div><b>" +
+        esc(l.t) + "</b><span>" + esc(l.d) + "</span></div></div>";
+    }).join("");
+
+    var fb = $("#r-feedback"); fb.innerHTML = "";
+    ST.results.forEach(function (r) {
+      var full = r.pts >= r.max - 1e-9, zero = r.pts <= 1e-9;
+      var d = document.createElement("div"); d.className = "fb";
+      var dl = r.user.map(function (u, q) {
+        var c = r.right[q] || r.right[0] || ["", ""];
+        return "<dt>Tu respuesta</dt><dd>" + esc(u[0]) + ": " + esc(u[1]) + "</dd><dt>Correcta</dt><dd>" + esc(c[0]) + ": " + esc(c[1]) + "</dd>";
+      }).join("");
+      d.innerHTML = "<h4><span class='mark " + (full ? "y" : zero ? "n" : "p") + "'>" + (full ? "✓" : zero ? "✕" : "~") + "</span>" +
+        esc(r.title) + " <span style='margin-left:auto;font-family:\"IBM Plex Mono\",monospace;font-size:.8rem;color:var(--ink-3)'>" +
+        (Math.round(r.pts * 100) / 100) + "/" + r.max + "</span></h4><dl>" + dl + "</dl><p class='tip'>" + esc(r.tip) + "</p>";
+      fb.appendChild(d);
+    });
+
+    $("#r-tablecap").textContent = "Medidas de variabilidad y de forma · " + e.sc.variable + " (" + e.sc.unidad +
+      ") en " + e.n + " " + e.sc.subject + ". Distribución " + e.forma + " y " + e.curt + ".";
+    $("#r-tabla").innerHTML = tablaResumen(e);
+
+    var series = [serieTotal(e),
+      resumenBox(e.gA.map(function (t) { return t / 10; }), e.sc.cats[0]),
+      resumenBox(e.gB.map(function (t) { return t / 10; }), e.sc.cats[1])];
+    drawBox($("#r-box"), series, e, false);
+    $("#r-boxcap").textContent = "Figura 1. Diagrama de cajas del conjunto completo y de cada categoría de " +
+      e.sc.grupo.toLowerCase() + ". Los asteriscos señalan valores atípicos.";
+    drawChart(e);
+    $("#r-figcap").textContent = "Figura 2. Dispersión de los " + e.n + " valores alrededor de la media, con el intervalo x̄ ± s.";
+
+    var nombre = ST.alumno.ape.toUpperCase() + ", " + ST.alumno.nom;
+    $("#c-name").textContent = nombre;
+    $("#c-case").textContent = e.sc.title;
+    $("#c-forma").textContent = e.forma.charAt(0).toUpperCase() + e.forma.slice(1) + " · " + e.curt;
+    $("#c-score").textContent = pts.toFixed(1) + " / 20";
+    $("#c-time").textContent = mm + " min " + (ss < 10 ? "0" : "") + ss + " s";
+    var d2 = new Date();
+    $("#c-date").textContent = d2.toLocaleDateString("es-PE", { day: "2-digit", month: "long", year: "numeric" });
+    var seed = nombre + "|" + e.sc.title + "|" + e.n + "|" + d2.getTime() + "|" + pts;
+    var hsh = 0; for (var q2 = 0; q2 < seed.length; q2++) { hsh = (hsh * 31 + seed.charCodeAt(q2)) >>> 0; }
+    $("#c-code").textContent = "MV-" + hsh.toString(36).toUpperCase() +
+      (ST.alumno.cod ? " · " + ST.alumno.cod : "") + (ST.alumno.sec ? " · " + ST.alumno.sec : "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function tablaResumen(e) {
+    var f = [
+      ["Media  x̄", f1(e.xb), "Σxᵢ / n = " + f1(e.S) + " / " + e.n],
+      ["Varianza  s²", f2(e.s2), "(Σxᵢ² − n x̄²) / (n − 1)"],
+      ["Desviación estándar  s", f2(e.s), "√s²"],
+      ["Coeficiente de variación", f2(e.CV) + " %", "(s / x̄) × 100"],
+      ["Rango  R", f1(e.R), f1(e.vals[e.n - 1]) + " − " + f1(e.vals[0])],
+      ["Q₁", f2(e.Q1.valor), "j = " + e.Q1.j.toFixed(2) + " · interpolado entre " + f1(e.Q1.Li) + " y " + f1(e.Q1.Ld)],
+      ["Mediana  Me = Q₂", f2(e.Me.valor), e.Me.par ? "semisuma de las posiciones " + e.Me.p1 + " y " + e.Me.p2 : "dato de la posición " + e.Me.p1],
+      ["Q₃", f2(e.Q3.valor), "j = " + e.Q3.j.toFixed(2) + " · interpolado entre " + f1(e.Q3.Li) + " y " + f1(e.Q3.Ld)],
+      ["Rango intercuartílico  RI", f2(e.RI), "Q₃ − Q₁ · ancho del 50 % central"],
+      ["Vallas del diagrama", f2(e.LI) + "  a  " + f2(e.LS), "Q₁ − 1.5 RI  y  Q₃ + 1.5 RI"],
+      ["Valores atípicos", e.outs.length === 0 ? "ninguno" : e.outs.map(f1).join(" ; "), "datos fuera del intervalo de las vallas"],
+      ["Asimetría  Aₖ", e.Ak.toFixed(3), "3(x̄ − Me)/s · " + e.forma],
+      ["Curtosis  Kᵤ", e.Ku.toFixed(3), "(Q₃ − Q₁)/[2(P₉₀ − P₁₀)] · " + e.curt],
+      ["CV " + e.sc.cats[0], f2(e.CVA) + " %", "x̄ = " + f2(e.mAd) + " · s = " + f2(e.sAd) + " · n = " + e.nA],
+      ["CV " + e.sc.cats[1], f2(e.CVB) + " %", "x̄ = " + f2(e.mBd) + " · s = " + f2(e.sBd) + " · n = " + e.nB],
+      ["CV " + e.catMul + " tras el cambio", f2(e.CVyMul) + " %", "y = " + e.cc + "·x + " + e.b1 + " → sᵧ = " + e.cc + "·s"],
+      ["CV " + e.catAdd + " tras el cambio", f2(e.CVyAdd) + " %", "y = x + " + e.b2 + " → sᵧ = s (no cambia)"]
+    ];
+    var h = '<table class="xtab"><thead><tr><th class="corner">Medida</th><th>Valor</th>' +
+            '<th>Cómo se obtiene</th></tr></thead><tbody>';
+    f.forEach(function (r) {
+      h += "<tr><th>" + esc(r[0]) + "</th><td>" + esc(r[1]) + '</td><td style="text-align:left">' + esc(r[2]) + "</td></tr>";
+    });
+    return h + "</tbody></table>";
+  }
+
+  function drawChart(e) {
+    var cv = $("#r-chart");
+    var cs = getComputedStyle(document.documentElement);
+    var C = function (v) { return cs.getPropertyValue(v).trim(); };
+    var W = cv.parentNode.clientWidth - 36, H = 250;
+    if (W < 240) W = 240;
+    var dpr = window.devicePixelRatio || 1;
+    cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + "px"; cv.style.height = H + "px";
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, W, H);
+
+    var padL = 30, padR = 24, padT = 40, padB = 62;
+    var pw = W - padL - padR, ph = H - padT - padB;
+    var lo = e.vals[0], hi = e.vals[e.n - 1], span = hi - lo || 1;
+    lo -= span * 0.08; hi += span * 0.08; span = hi - lo;
+    var X = function (v) { return padL + (v - lo) / span * pw; };
+    var base = padT + ph - 20;
+
+    /* banda x̄ ± s: solo a la altura de los datos, para no dejar el gráfico hueco */
+    var bandaTop = Math.max(padT, base - 86);
+    g.fillStyle = C("--accent-soft");
+    g.fillRect(X(e.xb - e.s), bandaTop, X(e.xb + e.s) - X(e.xb - e.s), base - bandaTop);
+
+    g.strokeStyle = C("--line-2"); g.lineWidth = 1;
+    g.beginPath(); g.moveTo(padL, base); g.lineTo(W - padR, base); g.stroke();
+    g.font = '10px "IBM Plex Mono", monospace'; g.fillStyle = C("--ink-3");
+    g.textAlign = "center"; g.textBaseline = "top";
+    for (var t = 0; t <= 4; t++) {
+      var vv = lo + span * t / 4, x = X(vv);
+      g.beginPath(); g.moveTo(x, base); g.lineTo(x, base + 5); g.stroke();
+      g.fillText(vv.toFixed(1), x, base + 8);
+    }
+    g.fillText(e.sc.unidad, padL + pw / 2, base + 26);
+
+    var cuenta = {};
+    e.vals.forEach(function (v) {
+      var k = v.toFixed(1);
+      cuenta[k] = (cuenta[k] || 0) + 1;
+      var x = X(v), y = base - 7 - (cuenta[k] - 1) * 9;
+      var out = e.outs.indexOf(v) >= 0;
+      g.fillStyle = out ? C("--bad-soft") : C("--surface");
+      g.strokeStyle = out ? C("--bad") : C("--accent"); g.lineWidth = 1.2;
+      g.beginPath(); g.arc(x, y, 4.2, 0, 6.284); g.fill(); g.stroke();
+    });
+
+    var marcas = [
+      { v: e.Me.valor, t: "Me", c: C("--ink-2") },
+      { v: e.xb, t: "x̄", c: C("--bad") }
+    ];
+    marcas.forEach(function (m, i) {
+      var x = X(m.v), top = 10 + i * 17;
+      g.strokeStyle = m.c; g.lineWidth = 1.6; g.setLineDash([4, 3]);
+      g.beginPath(); g.moveTo(x, top + 6); g.lineTo(x, base); g.stroke();
+      g.setLineDash([]);
+      g.fillStyle = m.c; g.font = 'bold 11px "IBM Plex Mono", monospace';
+      g.textAlign = "left"; g.textBaseline = "middle";
+      g.fillText(m.t + " = " + m.v.toFixed(2), x + 6, top);
+      g.beginPath(); g.arc(x, top + 6, 3, 0, 6.284); g.fill();
+    });
+
+    g.fillStyle = C("--accent"); g.font = '10px "IBM Plex Mono", monospace';
+    g.textAlign = "left"; g.textBaseline = "top";
+    g.fillText("x̄ ± s", X(e.xb - e.s) + 5, bandaTop + 4);
+  }
+
+  $("#printBtn").addEventListener("click", function () { window.print(); });
+  $("#againBtn").addEventListener("click", function () { location.reload(); });
+  window.addEventListener("beforeunload", function (ev) {
+    if (ST.started && !ST.finished) { ev.preventDefault(); ev.returnValue = ""; }
+  });
+  window.addEventListener("resize", function () {
+    if (ST.finished && EX) {
+      drawBox($("#r-box"), [serieTotal(EX),
+        resumenBox(EX.gA.map(function (t) { return t / 10; }), EX.sc.cats[0]),
+        resumenBox(EX.gB.map(function (t) { return t / 10; }), EX.sc.cats[1])], EX, false);
+      drawChart(EX);
+    }
+  });
+
+  window.__LAB4__ = { buildExercise: buildExercise, SCEN: SCEN, ex: function () { return EX; }, st: function () { return ST; },
+                      steps: STEPS, percentil: percentil, mediana: mediana, resumenBox: resumenBox };
+})();
+
+</script>
+</body>
+</html>
